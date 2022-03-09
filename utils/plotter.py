@@ -46,7 +46,7 @@ class ContributionsMode(Enum):
     )
 
 
-def show_image(image, real, predicted, cmap, **args):
+def show_image(image, real, predicted, cmap='gray', **args):
     """
     Show an image with its label (and prediction).
     :param cmap: The colormap to use
@@ -121,6 +121,10 @@ def show_contributions(
     # if the contribution mode is set to NONE or no contributions are provided exit
     if mode is ContributionsMode.NONE or contributions is None:
         return fig, ax
+
+    # convert to grayscale
+    if len(contributions.shape) > 3:
+        contributions = np.mean(contributions, -1)
 
     # show the contributions based on the type
     layers, contributions_name = mode(contributions)
