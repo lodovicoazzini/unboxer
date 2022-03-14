@@ -58,6 +58,21 @@ def get_label_instances(data, labels, label, verbose=False):
     filtered_data, filtered_labels = data[mask], labels[mask]
 
     if verbose:
-        print(f'selected {filtered_data.shape[0]} / {data.shape[0]}')
+        print(f'Selected {filtered_data.shape[0]}/{data.shape[0]}')
 
     return filtered_data, filtered_labels
+
+
+def get_misclassified(data, labels, predictions, verbose=False):
+    # get the indexes for the misclassified data
+    wrong_idxs = np.where(labels != predictions)[0]
+    # filter data and labels that are misclassified
+    wrong_data, real_labels, wrong_labels = (
+        np.take(data, wrong_idxs, 0),
+        np.take(labels, wrong_idxs, 0),
+        np.take(predictions, wrong_idxs, 0)
+    )
+    if verbose:
+        print(f'Selected {wrong_data.shape[0]}/{data.shape[0]}')
+
+    return wrong_data, real_labels, wrong_labels
