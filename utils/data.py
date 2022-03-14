@@ -1,3 +1,4 @@
+import numpy as np
 import tensorflow as tf
 from tensorflow.keras import datasets
 from tensorflow.python.module import module
@@ -37,3 +38,26 @@ def get_train_test_data(
         print(f'Data shape: {train_data.shape[1:]}')
 
     return (train_data, train_labels), (test_data, test_labels)
+
+
+def get_label_instances(data, labels, label, verbose=False):
+    """
+    Get the data and labels belonging to a given class
+    :param data: The data in the dataset
+    :param labels: The labels in the dataset
+    :param label: The label of the class
+    :param verbose: Print information about the result
+    :return: (filtered_data, filtered_labels)
+    """
+    # get the mask for the labels being equal to the given one
+    mask = np.ma.getmask(np.ma.masked_equal(labels, label))
+    if len(mask.shape) > 1:
+        mask = mask.all(axis=-1)
+
+    # filter the data and the labels based on the mask
+    filtered_data, filtered_labels = data[mask], labels[mask]
+
+    if verbose:
+        print(f'selected {filtered_data.shape[0]} / {data.shape[0]}')
+
+    return filtered_data, filtered_labels
