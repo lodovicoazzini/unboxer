@@ -43,38 +43,38 @@ def heatmap_distances(heatmaps, dist_func=heatmap_distance):
     return heatmaps_distances
 
 
-def cluster_distance_matrix(distance_matrix):
-    db_scan = DBSCAN(min_samples=6, eps=.7, metric='precomputed').fit(distance_matrix)
+def cluster_distance_matrix(distance_matrix, model=DBSCAN(min_samples=6, eps=.7, metric='precomputed'), plot=False):
+    """
+    Clusters the heatmaps based on a distance matrix
+    :param distance_matrix: The distance matrix to use for the clusters
+    :param model: The model to use to cluster the data
+    :param plot: Whether to visualize the clusters
+    :return: The clusters' labels (+ fig, ax if plot == True)
+    """
+    # cluster the distance matrix
+    clusters = model.fit_predict(distance_matrix)
 
-    labels = db_scan.labels_
     # associate one cluster label for each color
-    colors = [plt.cm.Spectral(val) for val in np.linspace(0, 1, len(set(labels)))]
-    colored_labels = dict(zip(labels, colors))
+    colors = [plt.cm.Spectral(val) for val in np.linspace(0, 1, len(set(clusters)))]
+    colored_labels = dict(zip(clusters, colors))
     # associate black with noise
     colored_labels[-1] = (0, 0, 0, 1)
 
-    # get the mask for the core samples
-    # initialize all to zeros
-    core_samples_mask = np.zeros_like(labels, dtype=bool)
-    # set to true the core ones
-    core_samples_mask[db_scan.core_sample_indices_] = True
+    if plot:
+        # prepare the general figure
+        fig, ax = plt.subplots(figsize=(16, 9))
+        sns.despine()
 
-    # prepare the general figure
-    fig, ax = plt.subplots(figsize=(16, 9))
-    sns.despine()
+        for label, color in colored_labels.items():
+            # filter for the element belonging to the label
+            labels_mask = clusters == label
+            # plot the core samples
+            core_points = distance_matrix[labels_mask]
+            ax.plot(
+                core_points[:, 0], core_points[:, 1],
+                'o', markerfacecolor=tuple(color), markeredgecolor='k'
+            )
 
-    for label, color in colored_labels.items():
-        # filter for the element belonging to the label
-        labels_mask = labels == label
-        # plot the core samples
-        core_points = distance_matrix[labels_mask & core_samples_mask]
-        plt.plot(
-            core_points[:, 0], core_points[:, 1],
-            'o', markerfacecolor=tuple(color), markeredgecolor='k', markersize=14
-        )
-        # plot the non-core samples
-        non_core_points = distance_matrix[labels_mask & ~core_samples_mask]
-        plt.plot(
-            non_core_points[:, 0], non_core_points[:, 1],
-            'o', markerfacecolor=tuple(color), markeredgecolor='k', markersize=6
-        )
+        return clusters, fig, ax
+
+    return clusters
