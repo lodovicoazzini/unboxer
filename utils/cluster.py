@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
 import tensorflow as tf
-from kneebow.rotor import Rotor
+from kneed import KneeLocator
 from scipy.interpolate import UnivariateSpline
 from sklearn.cluster import DBSCAN
 
@@ -78,16 +78,18 @@ def cluster_distance_matrix(distance_matrix, model=DBSCAN(metric='precomputed'),
             ax.plot(
                 points[:, 0], points[:, 1],
                 'x' if label == -1 else 'o', markerfacecolor=tuple(color), markeredgecolor='k',
-                label=label
+                label='no cluster' if label == -1 else label
             )
             plt.legend()
+            ax.set_xlim((0, ax.get_xlim()[1]))
+            ax.set_ylim((0, ax.get_ylim()[1]))
 
         return clusters, fig, ax
 
     return clusters
 
 
-def get_elbow_point(distance_matrix, plot=False, smoothing_factor=.1, degree=3, l_quantile=0, h_quantile=1):
+def get_elbow_point(distance_matrix, plot=False, smoothing_factor=0, degree=3, l_quantile=0, h_quantile=1):
     """
     Find the point of maximum curvature in the distances between elements
     :param distance_matrix: The matrix encoding the distances between the elements
@@ -136,17 +138,28 @@ def get_elbow_point(distance_matrix, plot=False, smoothing_factor=.1, degree=3, 
     data_smooth = np.array(list(zip(x, spl(x))))
 
     # find the point of maximum curvature
-    rotor = Rotor()
-    rotor.fit_rotate(data_smooth)
-    knee_point = distances[rotor.get_elbow_index()]
+    knee_locator = KneeLocator(data_smooth[:, 0], data_smooth[:, 1])
 
     # plot the data
     if plot:
         fig, ax = plt.subplots(figsize=(16, 9))
         sns.despine()
-        ax.plot(data[:, 0], data[:, 1], color='red')
-        ax.plot(data_smooth[:, 0], data_smooth[:, 1], color='blue')
+        # plot the original and smoothed data
+        ax.plot(data[:, 0], data[:, 1], color='black', label='original')
+        ax.plot(data_smooth[:, 0], data_smooth[:, 1], color='black', linestyle='dashed', label='smoothed')
+        # show the intercept for the knee point
+        ax.plot(
+            [0, knee_locator.knee, knee_locator.knee],
+            [knee_locator.knee_y, knee_locator.knee_y, 0],
+            color='red', linestyle='dotted', label='knee point'
+        )
+        # add the tick for the elbow point
+        plt.yticks(list(plt.yticks()[0]) + round(knee_locator.knee_y, 3))
+        ax.set_xlim((0, np.max(x)))
+        ax.set_ylim((0, np.max(data_smooth[:, 1])))
+        # show the legend
+        plt.legend()
 
-        return knee_point, fig, ax
+        return knee_locator.knee_y, fig, ax
 
-    return knee_point
+    return knee_locator.knee_y
