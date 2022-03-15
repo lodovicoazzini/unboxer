@@ -2,6 +2,7 @@ import copy
 
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
 import seaborn as sns
 import tensorflow as tf
 from kneed import KneeLocator
@@ -47,17 +48,25 @@ def heatmap_distances(heatmaps, dist_func=heatmap_distance):
     return heatmaps_distances
 
 
-def cluster_distance_matrix(distance_matrix, model=DBSCAN(metric='precomputed'), plot=False):
+def cluster_distance_matrix(distance_matrix, min_samples=5, eps=.5, plot=False, verbose=False):
     """
     Clusters the heatmaps based on a distance matrix
     :param distance_matrix: The distance matrix to use for the clusters
-    :param model: The model to use to cluster the data
+    :param min_samples: The minimum number of points to make a cluster
+    :param eps: The distance for two points to be neighbors
     :param plot: Whether to visualize the clusters
+    :param verbose: Print information about the clusters
     :return: The clusters' labels (+ fig, ax if plot == True)
     """
-    # cluster the distance matrix
-    clusters = model.fit_predict(distance_matrix)
+    # generate the clusters
+    clusters = DBSCAN(metric='precomputed', min_samples=min_samples, eps=eps).fit_predict(distance_matrix)
 
+    if verbose:
+        print(f"""
+Silhouette score = {silhouette_score(distance_matrix, clusters)}
+    min_samples = {min_samples}
+    eps = {eps} 
+        """)
     if plot:
         # prepare the general figure
         fig, ax = plt.subplots(figsize=(16, 9))
@@ -87,6 +96,28 @@ def cluster_distance_matrix(distance_matrix, model=DBSCAN(metric='precomputed'),
         return clusters, fig, ax
 
     return clusters
+
+
+def cluster_distance_matrix_optimize(distance_matrix, min_samples_list, eps=.5, plot=False, verbose=False):
+    """
+    Clusters the heatmaps based on a distance matrix
+    :param distance_matrix: The distance matrix to use for the clusters
+    :param min_samples_list: The list of values to try for the minimum number of points in a cluster
+    :param eps: The distance for two points to be neighbors
+    :param plot: Whether to visualize the clusters
+    :param verbose: Print information about the clusters
+    :return: The clusters' labels (+ fig, ax if plot == True)
+    """
+    # compute the silhouette scores for the clustering configurations
+    silhouette_scores = np.array([])
+    for min_samples in min_samples_list:
+        config_clusters = cluster_distance_matrix(distance_matrix, min_samples=min_samples, eps=eps)
+        silhouette_scores = np.append(silhouette_scores, silhouette_score(distance_matrix, config_clusters))
+
+    # get value corresponding to the minimum silhouette score
+    min_samples = min_samples_list[np.argmin(silhouette_scores)]
+
+    return cluster_distance_matrix(distance_matrix, min_samples=min_samples, eps=eps, plot=plot, verbose=verbose)
 
 
 def get_elbow_point(distance_matrix, plot=False, smoothing_factor=0, degree=3, l_quantile=0, h_quantile=1):
@@ -163,3 +194,52 @@ def get_elbow_point(distance_matrix, plot=False, smoothing_factor=0, degree=3, l
         return knee_locator.knee_y, fig, ax
 
     return knee_locator.knee_y
+
+
+def silhouette_score(distance_matrix, clusters):
+    # compute the silhouette score for each point
+    silhouette_scores = np.array([])
+    for idx in range(0, distance_matrix.shape[0]):
+        # compute the cohesion for the point (average intra-cluster distance)
+        # find the label for the current point
+        point_label = clusters[idx]
+        # if no cluster -> skip
+        if point_label == -1:
+            continue
+        # create a dataframe for the distances of the point
+        point_distances = pd.DataFrame({
+            'label': clusters,
+            'distance': distance_matrix[1, :]
+        }).reset_index()
+        # filter for the points in the same clusters
+        same_cluster_distances = point_distances[
+            (point_distances['label'] == point_label) &
+            (point_distances['index'] != idx)
+            ]['distance'].values
+        # compute the average intra distance, if empty (singleton) -> SI(i) = 1
+        if len(same_cluster_distances) == 0:
+            silhouette_scores = np.append(
+                silhouette_scores,
+                1
+            )
+            continue
+        avg_intra_dist = np.average(same_cluster_distances) if len(same_cluster_distances) > 0 else 1
+        # compute the separation for the point (minimum average inter-cluster distance)
+        # initialize the minimum inter distance to infinite
+        min_inter_dist = np.inf
+        other_labels = set(clusters[clusters != point_label])
+        for other_label in other_labels:
+            # compute the average distance with the points of the cluster
+            # compute the average distance with the points of the cluster
+            other_cluster_distances = point_distances[point_distances['label'] == other_label]['distance'].values
+            avg_other_dist = np.mean(other_cluster_distances)
+            # update the value of the minimum distance
+            min_inter_dist = avg_other_dist if avg_other_dist < min_inter_dist else min_inter_dist
+        # append the silhouette score for the point to the list
+        si_point = (min_inter_dist - avg_intra_dist) / max(avg_intra_dist, min_inter_dist)
+        silhouette_scores = np.append(
+            silhouette_scores,
+            si_point
+        )
+    # compute the silhouette score for the clustering configuration (average silhouette for the points)
+    return np.mean(silhouette_scores)
