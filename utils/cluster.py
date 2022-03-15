@@ -115,7 +115,7 @@ def cluster_distance_matrix_optimize(distance_matrix, min_samples_list, eps=.5, 
         silhouette_scores = np.append(silhouette_scores, silhouette_score(distance_matrix, config_clusters))
 
     # get value corresponding to the minimum silhouette score
-    min_samples = min_samples_list[np.argmin(silhouette_scores)]
+    min_samples = min_samples_list[np.argmax(silhouette_scores)]
 
     return cluster_distance_matrix(distance_matrix, min_samples=min_samples, eps=eps, plot=plot, verbose=verbose)
 
@@ -203,9 +203,6 @@ def silhouette_score(distance_matrix, clusters):
         # compute the cohesion for the point (average intra-cluster distance)
         # find the label for the current point
         point_label = clusters[idx]
-        # if no cluster -> skip
-        if point_label == -1:
-            continue
         # create a dataframe for the distances of the point
         point_distances = pd.DataFrame({
             'label': clusters,
@@ -217,7 +214,7 @@ def silhouette_score(distance_matrix, clusters):
             (point_distances['index'] != idx)
             ]['distance'].values
         # compute the average intra distance, if empty (singleton) -> SI(i) = 1
-        if len(same_cluster_distances) == 0:
+        if point_label == -1 or len(same_cluster_distances) == 0:
             silhouette_scores = np.append(
                 silhouette_scores,
                 1
