@@ -1,6 +1,6 @@
 import numpy as np
 
-from utils.image_similarity.similarity_metrics import euclidean_distance
+from utils.image_similarity.intensity_based import euclidean_distance
 
 
 def distance_matrix(heatmaps, dist_func=euclidean_distance):

@@ -1,8 +1,10 @@
+import math
+
 import numpy as np
 import tensorflow as tf
 
 
-def euclidean_distance(lhs, rhs):
+def euclidean_distance(lhs: np.ndarray, rhs: np.ndarray):
     """
     Compute the distance between two heatmaps
     :param lhs: The first heatmap
@@ -18,3 +20,12 @@ def euclidean_distance(lhs, rhs):
 
     # compute and return the distance between teh two matrices
     return np.sqrt(np.sum((lhs - rhs) ** 2))
+
+
+def mse(lhs: np.ndarray, rhs: np.ndarray):
+    # check that the two inputs have the same size
+    # compute the average of the squares of the differences for each pixel
+    err = np.sum((lhs.astype('float') - rhs.astype('float')) ** 2)
+    err /= float(lhs.shape[0] * rhs.shape[1])
+    # map the values from [0:same, inf:different) to (0:different, 1:same]
+    return math.exp(-err)
