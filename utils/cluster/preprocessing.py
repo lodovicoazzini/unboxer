@@ -1,4 +1,5 @@
 import numpy as np
+import tensorflow as tf
 
 from utils.image_similarity.intensity_based import euclidean_distance
 
@@ -23,3 +24,18 @@ def distance_matrix(heatmaps, dist_func=euclidean_distance):
     dist_matrix = dist_matrix + dist_matrix.T
 
     return dist_matrix
+
+
+def generate_contributions(
+        explainer,
+        data: np.ndarray,
+        predictions: np.ndarray
+):
+    contributions = explainer.explain(data, predictions)
+    # convert the contributions to grayscale
+    if len(contributions.shape) > 3 and contributions.shape[-1] > 1:
+        contributions = np.squeeze(tf.image.rgb_to_grayscale(contributions).numpy())
+    # filter for the positive contributions
+    contributions = np.ma.masked_less(np.squeeze(contributions), 0).filled(0)
+
+    return contributions
