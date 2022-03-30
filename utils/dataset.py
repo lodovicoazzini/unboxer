@@ -32,7 +32,7 @@ def get_train_test_data(
     return (train_data, train_labels), (test_data, test_labels)
 
 
-def get_data_mask(real: np.ndarray, predictions: np.ndarray, label=None, verbose: bool = False):
+def get_data_masks(real: np.ndarray, predictions: np.ndarray, label=None, verbose: bool = False):
     # get the mask for the misclassified data
     misclassified_mask = real != predictions
     # find the most misclassified label if not provided
@@ -47,8 +47,10 @@ def get_data_mask(real: np.ndarray, predictions: np.ndarray, label=None, verbose
     complete_mask = misclassified_mask & label_mask
 
     if verbose:
+        num_label = len(label_mask[label_mask])
         print(f"""
-Selected {len(complete_mask[complete_mask == True])}/{len(real)} instances for misclassified {label}
+Found {num_label}/{len(real)} instances for the label {label}
+Found {len(complete_mask[complete_mask])}/{num_label} instances for misclassified {label}
         """)
 
-    return complete_mask
+    return misclassified_mask, label_mask
