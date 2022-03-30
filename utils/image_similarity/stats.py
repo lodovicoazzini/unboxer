@@ -7,7 +7,7 @@ from matplotlib import pyplot as plt
 from scipy.interpolate import UnivariateSpline
 
 
-def get_elbow_point(dist_matrix, plot=False, smoothing_factor=0, degree=3, l_quantile=0, h_quantile=1):
+def get_elbow_point(dist_matrix, plot=False, smoothing_factor=0, degree=3, l_quantile=0, h_quantile=1, curve='convex'):
     """
     Find the point of maximum curvature in the distances between elements
     :param dist_matrix: The matrix encoding the distances between the elements
@@ -16,6 +16,7 @@ def get_elbow_point(dist_matrix, plot=False, smoothing_factor=0, degree=3, l_qua
     :param degree: The degree of the smoothing function
     :param l_quantile: The outliers filtered out on the left
     :param h_quantile: The outliers filtered out on the right
+    :param curve: `concave` -> knee, `convex` -> elbows
     :return: The distance corresponding to the maximum curvature (+ fig, ax if plot == True)
     """
     # initialize the matrix of the distances to the distance matrix
@@ -56,7 +57,9 @@ def get_elbow_point(dist_matrix, plot=False, smoothing_factor=0, degree=3, l_qua
     data_smooth = np.array(list(zip(x, spl(x))))
 
     # find the point of maximum curvature
-    knee_locator = KneeLocator(data_smooth[:, 0], data_smooth[:, 1])
+    knee_locator = KneeLocator(data_smooth[:, 0], data_smooth[:, 1], curve=curve)
+    p_x = knee_locator.knee
+    p_y = knee_locator.knee_y
 
     # plot the data
     if plot:
@@ -67,17 +70,17 @@ def get_elbow_point(dist_matrix, plot=False, smoothing_factor=0, degree=3, l_qua
         ax.plot(data_smooth[:, 0], data_smooth[:, 1], color='black', linestyle='dashed', label='smoothed')
         # show the intercept for the knee point
         ax.plot(
-            [0, knee_locator.knee, knee_locator.knee],
-            [knee_locator.knee_y, knee_locator.knee_y, 0],
+            [0, p_x, p_x],
+            [p_y, p_y, 0],
             color='red', linestyle='dotted', label='knee point'
         )
         # add the tick for the elbow point
-        plt.yticks(list(plt.yticks()[0]) + round(knee_locator.knee_y, 3))
+        plt.yticks(list(plt.yticks()[0]) + round(p_y, 3))
         ax.set_xlim((0, np.max(x)))
         ax.set_ylim((0, np.max(data_smooth[:, 1])))
         # show the legend
         plt.legend()
 
-        return knee_locator.knee_y, fig, ax
+        return p_y, fig, ax
 
-    return knee_locator.knee_y
+    return p_y
