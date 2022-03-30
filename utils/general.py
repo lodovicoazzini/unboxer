@@ -14,4 +14,4 @@ def save_figure(fig: plt.Figure, path: str, dpi: int = 150, transparent=True):
         os.makedirs(out_dir)
 
     # save the figure
-    fig.savefig(path, dpi=dpi, transparent=transparent)
+    fig.savefig(path, dpi=dpi, transparent=transparent, bbox_inches='tight')
