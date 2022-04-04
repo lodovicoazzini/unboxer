@@ -51,9 +51,11 @@ def visualize_clusters_images(
         clusters: np.ndarray,
         images: np.ndarray,
         predictions: np.ndarray,
+        overlay: np.ndarray = None,
         max_labels: int = None, max_samples: int = None,
-        fig_size: int = 8, cmap: str = 'gray',
-        show_legend: bool = True
+        fig_size: int = 8, cmap: str = 'gray', overlay_cmap='Reds', overlay_alpha=.7,
+        show_legend: bool = True,
+        label_size: int = 60, titles_size: int = 60
 ):
     # get the individual labels
     labels = np.unique(clusters)
@@ -61,11 +63,13 @@ def visualize_clusters_images(
     clusters_sample = clusters
     images_sample = images
     predictions_sample = predictions
+    overlay_sample = overlay if overlay is not None else np.empty_like(images)
     if max_labels is not None and labels.shape[0] > max_labels:
         sample_mask = np.isin(clusters, np.random.choice(labels, max_labels, replace=False))
         clusters_sample = clusters[sample_mask]
         images_sample = images[sample_mask]
         predictions_sample = predictions[sample_mask]
+        overlay_sample = overlay[sample_mask]
 
     # the number of rows is the number of selected labels
     labels_sample, items_count = np.unique(clusters_sample, return_counts=True)
@@ -87,22 +91,31 @@ def visualize_clusters_images(
             label,
             horizontalalignment='center',
             verticalalignment='center',
-            size=60
+            size=label_size
         )
         # plot the heatmaps corresponding to the label
         images_filtered = images_sample[clusters_sample == label]
         label_predictions = predictions_sample[clusters_sample == label]
+        overlay_filtered = overlay_sample[clusters_sample == label]
         # if the number of heatmaps is greater than the provided value -> draw a random sample
         images_filtered_sample = images_filtered
         label_predictions_sample = label_predictions
+        overlay_filtered_sample = overlay_filtered
         if images_filtered.shape[0] > max_samples:
             sample_idxs = np.random.choice(images_filtered.shape[0], max_samples, replace=False)
             images_filtered_sample = images_filtered[sample_idxs]
             label_predictions_sample = label_predictions[sample_idxs]
-        for col, zipped in enumerate(zip(images_filtered_sample, label_predictions_sample)):
-            image, prediction = zipped
-            last_image = ax[row][col + 1].imshow(np.ma.masked_equal(image, 0).filled(np.nan), cmap=cmap)
-            ax[row][col + 1].set_title(f'Prediction: {int(prediction)}')
+            overlay_filtered_sample = overlay_filtered[sample_idxs]
+        for col, zipped in enumerate(zip(images_filtered_sample, label_predictions_sample, overlay_filtered_sample)):
+            image, prediction, overlay_image = zipped
+            ax[row][col + 1].imshow(np.ma.masked_equal(image, 0).filled(np.nan), cmap=cmap)
+            if overlay is not None:
+                last_image = ax[row][col + 1].imshow(
+                    np.ma.masked_equal(overlay_image, 0).filled(np.nan),
+                    cmap=overlay_cmap,
+                    alpha=overlay_alpha
+                )
+            ax[row][col + 1].set_title(f'Prediction: {int(prediction)}', size=titles_size)
             ax[row][col + 1].axis('off')
 
     # remove the ticks and labels
