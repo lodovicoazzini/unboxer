@@ -49,7 +49,10 @@ class LocalLatentMode(ClusteringMode):
 
         clusters = self.clus_tech.fit_predict(projections)
         # compute the silhouette score for the clusters
-        score = silhouette_score(projections, clusters)
+        try:
+            score = silhouette_score(projections, clusters)
+        except ValueError:
+            score = None
 
         return clusters, score, projections
 
@@ -72,6 +75,9 @@ class GlobalLatentMode(ClusteringMode):
         # cluster the filtered contributions
         clusters = self.clus_tech.fit_predict(projections[self.mask])
         # compute the silhouette score for the clusters
-        score = silhouette_score(projections[self.mask], clusters)
+        try:
+            score = silhouette_score(projections[self.mask], clusters)
+        except ValueError:
+            score = None
 
         return clusters, score, projections[self.mask]
