@@ -2,16 +2,8 @@ import datetime
 import time
 
 import pandas as pd
-from clusim.clustering import Clustering
-from clusim.sim import nmi
 
 from utils.cluster.ClusteringMode import ClusteringMode
-
-
-def cluster_similarity(lhs: list, rhs: list, metric: callable = nmi):
-    c1 = Clustering().from_membership_list(lhs)
-    c2 = Clustering().from_membership_list(rhs)
-    return metric(c1, c2)
 
 
 def compare_approaches(
