@@ -1,6 +1,7 @@
 from itertools import combinations
 
 import numpy as np
+from clusim.clustering import Clustering
 
 
 def intra_pairs(clusters: np.ndarray) -> set[tuple]:
@@ -15,7 +16,8 @@ def intra_pairs(clusters: np.ndarray) -> set[tuple]:
     ])
 
 
-def intra_pairs_similarity(lhs: np.ndarray, rhs: np.ndarray) -> float:
+def intra_pairs_similarity(lhs: Clustering, rhs: Clustering) -> float:
+    lhs, rhs = lhs.to_membership_list(), rhs.to_membership_list()
     # compute the intra-pairs in the two solutions
     intra_lhs, intra_rhs = intra_pairs(lhs), intra_pairs(rhs)
     # return the fraction of common intrapairs
