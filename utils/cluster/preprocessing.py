@@ -1,15 +1,14 @@
+import matplotlib.pyplot as plt
 import numpy as np
+import seaborn as sns
 import tensorflow as tf
 
 from utils.image_similarity.intensity_based import euclidean_distance
 
 
-def distance_matrix(heatmaps, dist_func=euclidean_distance):
+def distance_matrix(heatmaps, dist_func=euclidean_distance, show_map=False):
     """
     Compute the distance matrix for a list of heatmaps
-    :param heatmaps: The list of heatmaps
-    :param dist_func: The distance function to use (default is Euclidean distance)
-    :return: The distance matrix NxN for the N heatmaps
     """
     # initialize the distances matrix to 0
     num_heatmaps = len(heatmaps)
@@ -22,6 +21,20 @@ def distance_matrix(heatmaps, dist_func=euclidean_distance):
             dist_matrix[row][col] = dist_func(lhs, rhs)
     # complete the rest of the distance matrix by summing it to its transposed
     dist_matrix = dist_matrix + dist_matrix.T
+
+    # visualize the heatmap
+    if show_map:
+        fig = plt.figure(figsize=(10, 10))
+        ax = sns.heatmap(
+            dist_matrix,
+            cmap='OrRd',
+            linewidth=.1,
+            vmin=0, vmax=1
+        )
+        plt.xticks(rotation=45)
+        plt.yticks(rotation=0)
+
+        return dist_matrix, fig, ax
 
     return dist_matrix
 
