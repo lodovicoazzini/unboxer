@@ -7,7 +7,7 @@ from clusim.sim import element_sim
 from keras.utils.np_utils import to_categorical
 from sklearn.manifold import TSNE
 
-from config import CLASSIFIER_PATH, PREDICTIONS_PATH, FEATURE_MAPS_CLUSTERS_MODE
+from config import CLASSIFIER_PATH, PREDICTIONS_PATH, FEATUREMAPS_CLUSTERS_MODE
 from utils.cluster.preprocessing import extract_maps_clusters, distance_matrix
 from utils.cluster.visualize import visualize_clusters_projections, visualize_clusters_images
 from utils.dataset import get_train_test_data, get_data_masks
@@ -18,19 +18,19 @@ if __name__ == '__main__':
 
     # Process the feature-maps and get the dataframe
     print('Extracting the clusters data from the feature-maps ...')
-    feature_maps_df = extract_maps_clusters()
+    featuremaps_df = extract_maps_clusters()
 
     # Compute the distance matrix
     print('Computing the distance matrix ...')
-    feature_maps_clusters = [
+    featuremaps_clusters = [
         Clustering().from_cluster_list(clusters_configuration)
-        for clusters_configuration in feature_maps_df[FEATURE_MAPS_CLUSTERS_MODE.value].values
+        for clusters_configuration in featuremaps_df[FEATUREMAPS_CLUSTERS_MODE.value].values
     ]
     distance_matrix, fig, ax = distance_matrix(
-        feature_maps_clusters,
+        featuremaps_clusters,
         lambda l, r: 1 - element_sim(l, r),
         show_map=True,
-        names=feature_maps_df.index
+        names=featuremaps_df.index
     )
     ax.set_title('Distance matrix for the feature combinations')
     save_figure(fig, f'out/feature_maps/distance_matrix')
@@ -60,7 +60,7 @@ if __name__ == '__main__':
 
     print('Showing the clusters projections and some sample images ...')
     # Show the clusters projections for each feature combination
-    for feature_combination, clusters in zip(feature_maps_df.index, feature_maps_clusters):
+    for feature_combination, clusters in zip(featuremaps_df.index, featuremaps_clusters):
         clusters = np.array(clusters.to_membership_list())
         # Get the mask for the clusters containing misclassified elements of the selected label
         mask_contains_miss_label = np.isin(clusters, np.unique(clusters[mask_miss_label]))
