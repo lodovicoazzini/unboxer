@@ -1,1 +1,1 @@
-Save here the inputs.
+This directory contains the inputs.

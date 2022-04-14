@@ -1,6 +1,10 @@
 .idea/
 .DS_Store
 __pycache__
-in/
-out/
-*.ipynb
+
+in/*
+!in/README.md
+logs/*
+!logs/README.md
+out/*
+!out/README.md
