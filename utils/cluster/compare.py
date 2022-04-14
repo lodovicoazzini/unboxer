@@ -2,6 +2,7 @@ import datetime
 import time
 
 import pandas as pd
+from clusim.clustering import Clustering
 
 from utils.cluster.ClusteringMode import ClusteringMode
 
@@ -54,8 +55,8 @@ DIM RED TECH PARAMS: {dim_red_techs_params}
                 'CLUSTERING_TECHNIQUE': clus_tech.__class__.__name__,
                 'DIMENSIONALITY_REDUCTION_TECHNIQUE': dim_red_techs_names,
                 'DIMENSIONALITY_REDUCTION_TECHNIQUE_PARAMS': dim_red_techs_params,
-                'SILHOUETTE': round(score, 3),
-                'CLUSTERS': clusters,
+                'SILHOUETTE': round(score, 3) if score is not None else None,
+                'CLUSTERS': Clustering().from_membership_list(clusters).to_cluster_list(),
                 'TIME_CONTRIBUTIONS': round(contributions_time, 5),
                 'TIME_CLUSTERING': round(cluster_time, 5),
                 'TIMESTAMP': datetime.datetime.now()
