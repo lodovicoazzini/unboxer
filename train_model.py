@@ -1,41 +1,54 @@
 import tensorflow as tf
+from keras.utils.np_utils import to_categorical
 from tensorflow.keras import layers
-from tensorflow.keras.losses import SparseCategoricalCrossentropy
-from tensorflow.keras.metrics import SparseCategoricalAccuracy
 from tensorflow.keras.models import Sequential
-from tensorflow.keras.optimizers import Adam
 
 from config import CLASSIFIER_PATH
 from utils.dataset import get_train_test_data
 
 if __name__ == '__main__':
+    # Set up the sequential classifier
     classifier = Sequential(layers=[
         layers.Lambda(
             lambda images: tf.image.rgb_to_grayscale(images)
             if len(images.shape) > 3 and images.shape[-1] > 1
             else images
         ),
-        layers.Conv2D(24, (3, 3), activation='relu', input_shape=(28, 28, 1), name='conv_1'),
-        layers.MaxPooling2D((2, 2)),
-        layers.Dropout(0.25),
-        layers.Conv2D(36, (3, 3), activation='relu', name='conv2'),
-        layers.MaxPooling2D((2, 2)),
-        layers.Dropout(0.25),
+        layers.Conv2D(64, (3, 3), padding='valid', input_shape=(28, 28, 1)),
+        layers.Activation('relu'),
+        layers.Conv2D(64, (3, 3)),
+        layers.Activation('relu'),
+        layers.MaxPooling2D(pool_size=(2, 2)),
+        layers.Dropout(.5),
         layers.Flatten(),
-        layers.Dense(128, activation='relu', name='dense_128'),
-        layers.Dense(10, activation='linear', name='visualized')
+        layers.Dense(128),
+        layers.Activation('relu'),
+        layers.Dropout(.5),
+        layers.Dense(10),
+        layers.Activation('softmax')
     ])
     classifier.compile(
-        optimizer=Adam(0.001),
-        loss=SparseCategoricalCrossentropy(from_logits=True),
-        metrics=[SparseCategoricalAccuracy()]
+        loss='categorical_crossentropy',
+        optimizer='adadelta',
+        metrics=['accuracy']
     )
 
+    # Get the train test data and convert the labels to categorical
     (train_data, train_labels), (test_data, test_labels) = get_train_test_data(rgb=True, verbose=True)
+    train_labels_cat, test_labels_cat = to_categorical(train_labels, 10), to_categorical(test_labels, 10)
 
-    # Create an instance of the classifier and train it
-    classifier.fit(train_data, train_labels, epochs=1, verbose=True)
-    loss, acc = classifier.evaluate(test_data, test_labels)
+    # Train the classifier
+    classifier.fit(
+        train_data,
+        train_labels_cat,
+        epochs=50,
+        batch_size=218,
+        shuffle=True,
+        verbose=True,
+        validation_data=(test_data, test_labels_cat)
+    )
+    loss, acc = classifier.evaluate(test_data, test_labels_cat)
     print(f'Accuracy on test: {acc}')
 
+    # Save the classifier
     classifier.save(CLASSIFIER_PATH)
