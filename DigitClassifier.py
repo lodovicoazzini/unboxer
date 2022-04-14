@@ -12,9 +12,16 @@ class DigitClassifier(Sequential):
     Sequential model to classify digits from the MNIST dataset
     """
 
+    @staticmethod
+    def _to_grayscale(images):
+        if len(images.shape) > 3 and images.shape[-1] > 1:
+            return tf.image.rgb_to_grayscale(images)
+        else:
+            return images
+
     def __init__(self):
         super(DigitClassifier, self).__init__([
-            layers.Lambda(lambda x: tf.image.rgb_to_grayscale(x)),
+            layers.Lambda(DigitClassifier._to_grayscale),
             layers.Conv2D(24, (3, 3), activation='relu', input_shape=(28, 28, 1), name='conv_1'),
             layers.MaxPooling2D((2, 2)),
             layers.Dropout(0.25),
