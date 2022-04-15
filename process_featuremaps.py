@@ -7,11 +7,13 @@ from clusim.sim import element_sim
 from keras.utils.np_utils import to_categorical
 from sklearn.manifold import TSNE
 
-from config import CLASSIFIER_PATH, PREDICTIONS_PATH, FEATUREMAPS_CLUSTERS_MODE
+from config import CLASSIFIER_PATH, FEATUREMAPS_CLUSTERS_MODE
 from utils.cluster.preprocessing import extract_maps_clusters, distance_matrix
 from utils.cluster.visualize import visualize_clusters_projections, visualize_clusters_images
 from utils.dataset import get_train_test_data, get_data_masks
 from utils.general import save_figure
+
+PREDICTIONS_PATH = 'in/predictions.csv'
 
 if __name__ == '__main__':
     warnings.filterwarnings('ignore')
@@ -33,7 +35,7 @@ if __name__ == '__main__':
         names=featuremaps_df.index
     )
     ax.set_title('Distance matrix for the feature combinations')
-    save_figure(fig, f'out/feature_maps/distance_matrix')
+    save_figure(fig, f'out/featuremaps/distance_matrix')
     print(distance_matrix)
     print()
 
@@ -77,7 +79,7 @@ if __name__ == '__main__':
             fig=fig, ax=ax, cmap='tab10', marker='X', label_prefix='mis'
         )
         fig.suptitle(f'Clusters projections for the features {feature_combination}')
-        save_figure(fig, f'out/feature_maps/clusters_projections_{feature_combination}')
+        save_figure(fig, f'out/featuremaps/clusters_projections_{feature_combination}')
 
         # sample some clusters labels containing misclassified items
         sample_labels = np.random.choice(np.unique(clusters[mask_contains_miss_label]), 4, replace=False)
@@ -91,7 +93,7 @@ if __name__ == '__main__':
             cmap='gray_r'
         )
         fig.suptitle(f'Correctly classified items for {feature_combination}')
-        save_figure(fig, f'out/feature_maps/correct_samples_{feature_combination}')
+        save_figure(fig, f'out/featuremaps/correct_samples_{feature_combination}')
         # show some incorrectly classified images for clusters containing also misclassified images
         fig, _ = visualize_clusters_images(
             clusters=clusters[mask_contains_miss_label & mask_miss_label & sample_mask],
@@ -101,4 +103,4 @@ if __name__ == '__main__':
             cmap='gray_r'
         )
         fig.suptitle(f'Misclassified classified items for {feature_combination}')
-        save_figure(fig, f'out/feature_maps/misclassified_samples_{feature_combination}')
+        save_figure(fig, f'out/featuremaps/misclassified_samples_{feature_combination}')
