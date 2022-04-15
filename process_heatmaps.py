@@ -2,6 +2,7 @@ import warnings
 
 import numpy as np
 import tensorflow as tf
+from clusim.clustering import Clustering
 from keras.utils.np_utils import to_categorical
 
 from config import CLASSIFIER_PATH, HEATMAPS_PROCESS_MODE, EXPLAINERS, DIM_RED_TECHS, CLUS_TECH, ITERATIONS, CLUS_SIM
@@ -22,8 +23,8 @@ if __name__ == '__main__':
     )
     # Load the model and the predictions
     print('Loading the model and the predictions ...')
-    classifier = tf.keras.models.load_model(f'../{CLASSIFIER_PATH}')
-    predictions = np.loadtxt('../in/predictions.csv')
+    classifier = tf.keras.models.load_model(CLASSIFIER_PATH)
+    predictions = np.loadtxt('in/predictions.csv')
     predictions_cat = to_categorical(predictions, num_classes=len(set(train_labels)))
     # Get the masks to filter the data
     mask_miss, mask_label = get_data_masks(test_labels, predictions, label=5, verbose=True)
@@ -33,7 +34,7 @@ if __name__ == '__main__':
     approaches = [
         HEATMAPS_PROCESS_MODE(
             mask=mask_label,
-            explainer=explainer,
+            explainer=explainer(classifier),
             dim_red_techs=DIM_RED_TECHS,
             clus_tech=CLUS_TECH
         )
@@ -51,7 +52,7 @@ if __name__ == '__main__':
     print('Computing the distance matrix ...')
     # Compute the distance matrix
     distances_df, fig, ax = distance_matrix(
-        heatmaps=df['clusters'].values,
+        heatmaps=[Clustering().from_cluster_list(clusters) for clusters in df['clusters']],
         dist_func=lambda lhs, rhs: 1 - CLUS_SIM(lhs, rhs),
         names=df['explainer'],
         show_map=True

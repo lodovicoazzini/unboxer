@@ -24,11 +24,11 @@ def compare_approaches(
         dim_red_techs_params = [dim_red_tech.get_params() for dim_red_tech in dim_red_techs]
         if verbose:
             print(f"""
-APPROACH: {approach.__class__.__name__}
-EXPLAINER: {explainer.__class__.__name__}
-CLUS TECH: {clus_tech.__class__.__name__}
-DIM RED TECH: {dim_red_techs_names}
-DIM RED TECH PARAMS: {dim_red_techs_params}
+approach: {approach.__class__.__name__}
+explainer: {explainer.__class__.__name__}
+clus_tech: {clus_tech.__class__.__name__}
+dim_red_techs: {dim_red_techs_names}
+dim_red_techs_params: {dim_red_techs_params}
             """)
         # generate the contributions
         start = time.time()
@@ -50,16 +50,16 @@ DIM RED TECH PARAMS: {dim_red_techs_params}
 
             # append the data
             results.append({
-                'CLUSTERING_MODE': approach.__class__.__name__,
-                'EXPLAINER': explainer.__class__.__name__,
-                'CLUSTERING_TECHNIQUE': clus_tech.__class__.__name__,
-                'DIMENSIONALITY_REDUCTION_TECHNIQUE': dim_red_techs_names,
-                'DIMENSIONALITY_REDUCTION_TECHNIQUE_PARAMS': dim_red_techs_params,
-                'SILHOUETTE': round(score, 3) if score is not None else None,
-                'CLUSTERS': Clustering().from_membership_list(clusters).to_cluster_list(),
-                'TIME_CONTRIBUTIONS': round(contributions_time, 5),
-                'TIME_CLUSTERING': round(cluster_time, 5),
-                'TIMESTAMP': datetime.datetime.now()
+                'clustering_mode': approach.__class__.__name__,
+                'explainer': explainer.__class__.__name__,
+                'clustering_technique': clus_tech.__class__.__name__,
+                'dim_red_techs': dim_red_techs_names,
+                'dim_red_techs_params': dim_red_techs_params,
+                'silhouette': round(score, 3) if score is not None else None,
+                'clusters': Clustering().from_membership_list(clusters).to_cluster_list(),
+                'time_contributions': round(contributions_time, 5),
+                'time_clustering': round(cluster_time, 5),
+                'timestamp': datetime.datetime.now()
             })
 
     # save the results
