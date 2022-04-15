@@ -1,3 +1,4 @@
+from clusim.clusimelement import element_sim
 from sklearn.cluster import AffinityPropagation
 from sklearn.manifold import TSNE
 from xplique.attributions import GradCAM, SmoothGrad, IntegratedGradients, Rise, KernelShap, Lime
@@ -21,4 +22,6 @@ EXPLAINERS = [
 ]
 DIM_RED_TECHS = [TSNE(perplexity=3)]
 CLUS_TECH = AffinityPropagation()
+ITERATIONS = 20
+CLUS_SIM = element_sim
 FEATUREMAPS_CLUSTERS_MODE = FeatureMapsClustersMode.ORIGINAL
