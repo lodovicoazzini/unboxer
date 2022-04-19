@@ -6,10 +6,6 @@ from xplique.attributions import GradCAM, SmoothGrad, IntegratedGradients, Rise,
 from FeatureMapsClustersMode import FeatureMapsClustersMode
 from utils.cluster.ClusteringMode import LocalLatentMode
 
-CLASSIFIER_PATH = 'in/models/digit_classifier.h5'
-PREDICTIONS_PATH = 'in/predictions.csv'
-FEATURE_MAPS_CLUSTERS_DIR = 'in/feature_map_clusters'
-
 HEATMAPS_PROCESS_MODE = LocalLatentMode
 BATCH_SIZE = 64
 EXPLAINERS = [
@@ -20,7 +16,7 @@ EXPLAINERS = [
     lambda classifier: KernelShap(classifier, nb_samples=1000),
     lambda classifier: Lime(classifier, nb_samples=1000)
 ]
-DIM_RED_TECHS = [TSNE(perplexity=3)]
+DIM_RED_TECHS = [TSNE(perplexity=7)]
 CLUS_TECH = AffinityPropagation()
 ITERATIONS = 20
 CLUS_SIM = element_sim

@@ -3,7 +3,7 @@ from keras.utils.np_utils import to_categorical
 from tensorflow.keras import layers
 from tensorflow.keras.models import Sequential
 
-from config import CLASSIFIER_PATH
+from config_dirs import CLASSIFIER_PATH
 from utils.dataset import get_train_test_data
 
 if __name__ == '__main__':

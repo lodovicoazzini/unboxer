@@ -7,9 +7,8 @@ import seaborn as sns
 import tensorflow as tf
 from scipy.ndimage import label
 
+from config_dirs import FEATURE_MAPS_CLUSTERS_DIR
 from utils.image_similarity.intensity_based import euclidean_distance
-
-FEATURE_MAPS_CLUSTERS_DIR = 'in/featuremaps_clusters'
 
 
 def distance_matrix(heatmaps, dist_func=euclidean_distance, show_map=False, names=None):

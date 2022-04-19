@@ -7,7 +7,8 @@ from clusim.sim import element_sim
 from keras.utils.np_utils import to_categorical
 from sklearn.manifold import TSNE
 
-from config import CLASSIFIER_PATH, FEATUREMAPS_CLUSTERS_MODE, FEATURE_MAPS_CLUSTERS_DIR
+from config import FEATUREMAPS_CLUSTERS_MODE
+from config_dirs import CLASSIFIER_PATH, FEATURE_MAPS_CLUSTERS_DIR
 from utils.cluster.preprocessing import extract_maps_clusters, distance_matrix
 from utils.cluster.visualize import visualize_clusters_projections, visualize_clusters_images
 from utils.dataset import get_train_test_data, get_data_masks

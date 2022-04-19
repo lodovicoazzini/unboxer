@@ -5,7 +5,8 @@ import tensorflow as tf
 from clusim.clustering import Clustering
 from keras.utils.np_utils import to_categorical
 
-from config import CLASSIFIER_PATH, HEATMAPS_PROCESS_MODE, EXPLAINERS, DIM_RED_TECHS, CLUS_TECH, ITERATIONS, CLUS_SIM
+from config import HEATMAPS_PROCESS_MODE, EXPLAINERS, DIM_RED_TECHS, CLUS_TECH, ITERATIONS, CLUS_SIM
+from config_dirs import CLASSIFIER_PATH
 from utils.cluster.compare import compare_approaches
 from utils.cluster.preprocessing import distance_matrix
 from utils.dataset import get_train_test_data, get_data_masks
