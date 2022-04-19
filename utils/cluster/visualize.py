@@ -71,9 +71,13 @@ def visualize_clusters_images(
         predictions_sample = predictions[sample_mask]
         overlay_sample = overlay[sample_mask]
 
+    # If no cluster is in the sample return an empty image
+    if len(clusters_sample) == 0:
+        return plt.subplots(0, 0)
     # the number of rows is the number of selected labels
     labels_sample, items_count = np.unique(clusters_sample, return_counts=True)
-    n_rows = labels_sample.shape[0]
+    # Add one row to prevent errors and remove it at the end
+    n_rows = labels_sample.shape[0] + 1
     # the number of columns is the number of selected individuals + 1 for the label
     n_cols = 1 + np.amax(items_count)
     if max_samples is not None:
@@ -128,5 +132,9 @@ def visualize_clusters_images(
         cbar_ax = fig.add_axes([0.9, 0.15, 0.01, 0.7])
         cbar = fig.colorbar(last_image, cax=cbar_ax)
         cbar.set_ticks([])
+
+    # Remove the last row
+    for ax_i in ax[-1]:
+        fig.delaxes(ax_i)
 
     return fig, ax
