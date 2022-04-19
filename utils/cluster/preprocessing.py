@@ -9,7 +9,7 @@ from scipy.ndimage import label
 
 from utils.image_similarity.intensity_based import euclidean_distance
 
-FEATURE_MAPS_CLUSTERS_DIR = 'in/feature_map_clusters'
+FEATURE_MAPS_CLUSTERS_DIR = 'in/featuremaps_clusters'
 
 
 def distance_matrix(heatmaps, dist_func=euclidean_distance, show_map=False, names=None):
@@ -35,6 +35,8 @@ def distance_matrix(heatmaps, dist_func=euclidean_distance, show_map=False, name
             columns=names,
             index=names
         )
+        dist_matrix_df = dist_matrix_df.groupby(dist_matrix_df.columns, axis=1).mean()
+        dist_matrix_df = dist_matrix_df.groupby(dist_matrix_df.index, axis=0).mean()
         fig = plt.figure(figsize=(10, 10))
         ax = sns.heatmap(
             dist_matrix_df,
