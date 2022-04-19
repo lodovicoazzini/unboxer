@@ -51,10 +51,12 @@ if __name__ == '__main__':
 
     print('Computing the distance matrix ...')
     # Compute the distance matrix
+    # Remove the configurations with only one cluster
+    filtered_df = df[df['num_clusters'] > 1]
     distances_df, fig, ax = distance_matrix(
-        heatmaps=[Clustering().from_cluster_list(clusters) for clusters in df['clusters']],
+        heatmaps=[Clustering().from_cluster_list(clusters) for clusters in filtered_df['clusters']],
         dist_func=lambda lhs, rhs: 1 - CLUS_SIM(lhs, rhs),
-        names=df['explainer'],
+        names=filtered_df['explainer'],
         show_map=True
     )
     fig.suptitle('Distance matrix for the considered XAI approaches')
