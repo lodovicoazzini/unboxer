@@ -16,7 +16,7 @@ EXPLAINERS = [
     lambda classifier: KernelShap(classifier, nb_samples=1000),
     lambda classifier: Lime(classifier, nb_samples=1000)
 ]
-DIM_RED_TECHS = [TSNE(perplexity=7)]
+DIM_RED_TECHS = [[TSNE(perplexity=perplexity)] for perplexity in range(1, 16, 2)]
 CLUS_TECH = AffinityPropagation()
 ITERATIONS = 20
 CLUS_SIM = element_sim

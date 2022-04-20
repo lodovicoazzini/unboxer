@@ -1,4 +1,5 @@
 import datetime
+import sys
 import time
 
 import pandas as pd
@@ -15,21 +16,18 @@ def compare_approaches(
 ) -> pd.DataFrame:
     results = []
     # iterate over the approaches in the list
-    for approach in approaches:
+    for idx, approach in enumerate(approaches):
         # get the information about the approach
         explainer = approach.get_explainer()
         clus_tech = approach.get_clustering_technique()
         dim_red_techs = approach.get_dimensionality_reduction_techniques()
         dim_red_techs_names = [dim_red_tech.__class__.__name__ for dim_red_tech in dim_red_techs]
         dim_red_techs_params = [dim_red_tech.get_params() for dim_red_tech in dim_red_techs]
+
         if verbose:
-            print(f"""
-approach: {approach.__class__.__name__}
-explainer: {explainer.__class__.__name__}
-clus_tech: {clus_tech.__class__.__name__}
-dim_red_techs: {dim_red_techs_names}
-dim_red_techs_params: {dim_red_techs_params}
-            """)
+            sys.stdout.write('\r')
+            sys.stdout.write(f'{idx}/{len(approaches)}\n')
+
         # generate the contributions
         start = time.time()
         contributions = approach.generate_contributions(data, predictions)
@@ -45,8 +43,6 @@ dim_red_techs_params: {dim_red_techs_params}
                 # only one cluster generated -> silhouette error
                 clusters, score, projections = [], None, []
             cluster_time = time.time() - start
-            if verbose:
-                print(f'{iteration + 1}/{iterations} -> {score if score is not None else "NO CLUSTERS"}')
 
             # append the data
             results.append({
@@ -65,6 +61,16 @@ dim_red_techs_params: {dim_red_techs_params}
                 'timestamp': datetime.datetime.now()
             })
 
+            # Show the progress
+            if verbose:
+                sys.stdout.write('\r')
+                progress = int((iteration + 1) / iterations * 100)
+                progress_bar_len = 20
+                progress_bar_filled = int(progress / 100 * progress_bar_len)
+                sys.stdout.write(
+                    f'[{progress_bar_filled * "="}{(progress_bar_len - progress_bar_filled) * " "}]\t{progress}%')
+                sys.stdout.flush()
+        print()
     # save the results
     results_df = pd.DataFrame(results)
 
