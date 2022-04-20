@@ -52,11 +52,13 @@ dim_red_techs_params: {dim_red_techs_params}
             results.append({
                 'clustering_mode': approach.__class__.__name__,
                 'explainer': explainer.__class__.__name__,
+                'contributions': contributions,
                 'clustering_technique': clus_tech.__class__.__name__,
                 'dim_red_techs': dim_red_techs_names,
                 'dim_red_techs_params': dim_red_techs_params,
                 'silhouette': round(score, 3) if score is not None else None,
                 'clusters': Clustering().from_membership_list(clusters).to_cluster_list(),
+                'projections': projections,
                 'num_clusters': len(set(clusters)),
                 'time_contributions': round(contributions_time, 5),
                 'time_clustering': round(cluster_time, 5),

@@ -42,7 +42,7 @@ def visualize_clusters_projections(
             s=size
         )
         # add the legend
-        ax.legend()
+        ax.legend(ncol=3)
 
     return fig, ax
 

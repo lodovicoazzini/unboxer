@@ -3,6 +3,7 @@ import os
 
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
 
 
 def beep():
@@ -26,3 +27,17 @@ def shorten_list(original: np.ndarray, size: int) -> np.ndarray:
     rounded_len = window_size * math.floor(len(original) / window_size)
     # average the list over windows to reduce its size
     return np.mean(original[:rounded_len].reshape(-1, window_size), axis=1)
+
+
+def weight_not_null(df: pd.DataFrame, group_by, agg_column: str, metric='mean') -> pd.DataFrame:
+    """
+    Weighting a column metric based on the number of non-null entries in the column.
+    The weight is rages between [0, 1] and corresponds to the function ln( (e-1) * not_none/max_not_none + 1).
+    """
+    aggregated = df.groupby(group_by)[agg_column].agg(val=metric, not_none='count')
+    max_not_none = aggregated['not_none'].max()
+    aggregated['weighted_val'] = aggregated.apply(
+        lambda row: row['val'] * math.log((math.e - 1) * row['not_none'] / max_not_none + 1),
+        axis=1
+    )
+    return aggregated
