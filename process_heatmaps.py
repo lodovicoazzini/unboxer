@@ -70,6 +70,7 @@ if __name__ == '__main__':
     )
     # Filter the dataset for the entries corresponding to the best configuration for each explainer
     filtered_df = df[df[['explainer', 'perplexity']].apply(tuple, axis=1).isin(best_config_combs)]
+    filtered_df.to_csv('logs/heatmaps_data.csv', index=False)
 
     print('Computing the distance matrix ...')
     # Get the data for the best configurations
