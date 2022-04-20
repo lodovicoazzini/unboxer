@@ -91,7 +91,7 @@ if __name__ == '__main__':
             clusters=clusters[mask_contains_miss_label & ~mask_miss_label & sample_mask],
             images=test_data_gs[mask_label][mask_contains_miss_label & ~mask_miss_label & sample_mask],
             predictions=predictions[mask_label][mask_contains_miss_label & ~mask_miss_label & sample_mask],
-            max_labels=4, max_samples=3,
+            max_samples=3,
             cmap='gray_r'
         )
         fig.suptitle(f'Correctly classified items for {feature_combination}')
@@ -101,7 +101,7 @@ if __name__ == '__main__':
             clusters=clusters[mask_contains_miss_label & mask_miss_label & sample_mask],
             images=test_data_gs[mask_label][mask_contains_miss_label & mask_miss_label & sample_mask],
             predictions=predictions[mask_label][mask_contains_miss_label & mask_miss_label & sample_mask],
-            max_labels=4, max_samples=3,
+            max_samples=3,
             cmap='gray_r'
         )
         fig.suptitle(f'Misclassified classified items for {feature_combination}')
