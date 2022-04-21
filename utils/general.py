@@ -1,5 +1,6 @@
 import math
 import os
+from itertools import combinations
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -41,3 +42,23 @@ def weight_not_null(df: pd.DataFrame, group_by, agg_column: str, metric='mean') 
         axis=1
     )
     return aggregated
+
+
+def get_common_clusters(clusters_list):
+    # Flatten the list of clusters, remove singletons and black-hole
+    all_clusters = [cluster for clusters in clusters_list for cluster in clusters if
+                    len(cluster) > 1 and len(clusters) > 1]
+    # Find all the combinations of clusters
+    combined = list(combinations(all_clusters, 2))
+    # Find all the possible intersections between the clusters
+    intersections = [set(lhs).intersection(set(rhs)) for lhs, rhs in combined]
+    # Remove the intersections of one element
+    intersections = [intersection for intersection in intersections if len(intersection) > 1]
+    # Count the occurrences of the intersections
+    intersections_counts = list(zip(*np.unique(intersections, return_counts=True)))
+    # Remove the intersections occurring only once
+    intersections_counts = [(intersection, count) for intersection, count in intersections_counts if count > 1]
+    # Sort the intersections by descending count and descending size
+    intersections_counts = sorted(intersections_counts, key=lambda entry: (-entry[1], -len(entry[0])))
+
+    return intersections_counts
