@@ -73,7 +73,15 @@ def visualize_clusters_images(
 
     # If no cluster is in the sample return an empty image
     if len(clusters_sample) == 0:
-        return plt.subplots(0, 0)
+        fig, ax = plt.subplots(1, 1)
+        ax.text(
+            .5, .5,
+            'EMPTY SAMPLE',
+            horizontalalignment='center',
+            verticalalignment='center',
+            size=label_size
+        )
+        return fig, ax
     # the number of rows is the number of selected labels
     labels_sample, items_count = np.unique(clusters_sample, return_counts=True)
     # Add one row to prevent errors and remove it at the end
