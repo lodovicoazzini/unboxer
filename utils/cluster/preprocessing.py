@@ -1,5 +1,3 @@
-import os
-
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -7,7 +5,6 @@ import seaborn as sns
 import tensorflow as tf
 from scipy.ndimage import label
 
-from config_dirs import FEATURE_MAPS_CLUSTERS_DIR
 from utils.image_similarity.intensity_based import euclidean_distance
 
 
@@ -68,23 +65,14 @@ def generate_contributions(
 
 def extract_maps_clusters():
     # Create the base dataframe with the features and the cells containing the clusters
-    clusters_df = pd.DataFrame(
-        [
-            {
-                'features': file_name.split('_clusters.npy')[0],
-                'cells_clusters': np.load(os.path.join(FEATURE_MAPS_CLUSTERS_DIR, file_name), allow_pickle=True)
-            }
-            for file_name in os.listdir(FEATURE_MAPS_CLUSTERS_DIR)
-            if file_name.endswith('_clusters.npy')
-        ]
-    )
-    clusters_df = clusters_df.set_index('features')
+    clusters_df = pd.read_pickle('in/featuremaps_data')
+    clusters_df = clusters_df.set_index('approach')
 
     # Get the number of clusters
-    clusters_df['clusters_list'] = clusters_df['cells_clusters'].apply(get_clusters_list)
+    clusters_df['clusters_list'] = clusters_df['clusters'].apply(get_clusters_list)
     clusters_df['num_clusters'] = clusters_df['clusters_list'].apply(len)
     # Get the size of the cluster in each cell
-    clusters_df['cells_size'] = clusters_df['cells_clusters'].apply(
+    clusters_df['cells_size'] = clusters_df['clusters'].apply(
         np.vectorize(lambda cell: len(cell) if cell is not None else 0))
     # Get the matrix for the connected components
     shape = [
@@ -97,10 +85,10 @@ def extract_maps_clusters():
         lambda matrix: len(np.unique(matrix)))
 
     clusters_df['merged_clusters_list'] = clusters_df.apply(
-        lambda row: merge_clusters(row['cells_clusters'], row['connected_components']), axis=1)
+        lambda row: merge_clusters(row['clusters'], row['connected_components']), axis=1)
     clusters_df['num_merged_clusters'] = clusters_df['merged_clusters_list'].apply(len)
 
-    clusters_df.to_csv('logs/feature_combinations_clusters.csv', index=True)
+    clusters_df.to_pickle('logs/feature_combinations_clusters')
 
     return clusters_df
 
