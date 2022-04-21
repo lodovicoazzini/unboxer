@@ -8,14 +8,14 @@ from keras.utils.np_utils import to_categorical
 from sklearn.manifold import TSNE
 
 from config import FEATUREMAPS_CLUSTERS_MODE
-from config_dirs import CLASSIFIER_PATH, FEATURE_MAPS_CLUSTERS_DIR
+from config_dirs import CLASSIFIER_PATH
 from utils.cluster.preprocessing import extract_maps_clusters, distance_matrix
 from utils.cluster.visualize import visualize_clusters_projections, visualize_clusters_images
 from utils.dataset import get_train_test_data, get_data_masks
 from utils.general import save_figure
 
 PREDICTIONS_PATH = 'in/predictions.csv'
-BASE_DIR = f'out/{FEATURE_MAPS_CLUSTERS_DIR.split("/")[-1]}/{FEATUREMAPS_CLUSTERS_MODE.name}'
+BASE_DIR = f'out/featuremaps/{FEATUREMAPS_CLUSTERS_MODE.name}'
 
 if __name__ == '__main__':
     warnings.filterwarnings('ignore')
@@ -84,7 +84,8 @@ if __name__ == '__main__':
         save_figure(fig, f'{BASE_DIR}/clusters_projections_{feature_combination}')
 
         # sample some clusters labels containing misclassified items
-        sample_labels = np.random.choice(np.unique(clusters[mask_contains_miss_label]), 4, replace=False)
+        unique_labels = np.unique(clusters[mask_contains_miss_label])
+        sample_labels = np.random.choice(unique_labels, min(4, len(unique_labels)), replace=False)
         sample_mask = np.isin(clusters, sample_labels)
         # show some correctly classified images for clusters containing also misclassified images
         fig, _ = visualize_clusters_images(
