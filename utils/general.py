@@ -5,7 +5,6 @@ from itertools import combinations
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-from clusim.clustering import Clustering
 
 
 def beep():
@@ -76,11 +75,3 @@ def get_common_clusters(clusters_list, mask=None):
     intersections_counts = sorted(intersections_counts, key=lambda entry: (-entry[1], -len(entry[0])))
 
     return intersections_counts
-
-
-def get_non_unique_membership_list(clusters):
-    return [
-        list(clus_id)[0]
-        for idx, clus_id
-        in sorted(Clustering().from_cluster_list(clusters).to_elm2clu_dict().items())
-    ]
