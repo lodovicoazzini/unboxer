@@ -5,6 +5,7 @@ from itertools import combinations
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+from clusim.clustering import Clustering
 
 
 def beep():
@@ -44,7 +45,20 @@ def weight_not_null(df: pd.DataFrame, group_by, agg_column: str, metric='mean') 
     return aggregated
 
 
-def get_common_clusters(clusters_list):
+def get_common_clusters(clusters_list, mask=None):
+    # Filter based on the mask
+    if mask is not None:
+        # Find the indexes for the mask
+        miss_idxs = [idx for idxs in np.argwhere(mask) for idx in idxs]
+        # Filter the clusters for the ones containing at least one misclassified item
+        clusters_list = [
+            [
+                cluster
+                for cluster in clusters
+                if len(set(cluster).intersection(set(miss_idxs))) > 0
+            ]
+            for clusters in clusters_list
+        ]
     # Flatten the list of clusters, remove singletons and black-hole
     all_clusters = [cluster for clusters in clusters_list for cluster in clusters if
                     len(cluster) > 1 and len(clusters) > 1]
@@ -57,8 +71,16 @@ def get_common_clusters(clusters_list):
     # Count the occurrences of the intersections
     intersections_counts = list(zip(*np.unique(intersections, return_counts=True)))
     # Remove the intersections occurring only once
-    intersections_counts = [(intersection, count) for intersection, count in intersections_counts if count > 1]
+    intersections_counts = [(list(intersection), count) for intersection, count in intersections_counts if count > 1]
     # Sort the intersections by descending count and descending size
     intersections_counts = sorted(intersections_counts, key=lambda entry: (-entry[1], -len(entry[0])))
 
     return intersections_counts
+
+
+def get_non_unique_membership_list(clusters):
+    return [
+        list(clus_id)[0]
+        for idx, clus_id
+        in sorted(Clustering().from_cluster_list(clusters).to_elm2clu_dict().items())
+    ]
