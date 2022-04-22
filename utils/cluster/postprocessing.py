@@ -1,13 +1,20 @@
 import numpy as np
 from clusim.clustering import Clustering
 
+from utils.dataset import get_train_test_data, get_data_masks
 
-def get_frac_misses(cluster: list, mask: list) -> float:
+
+def get_frac_misses(cluster: list) -> float:
     """
     Find the fraction of misclassified elements in each cluster.
     """
     # Get the indexes for the misclassified elements
-    miss_idxs = np.argwhere(mask)
+    # Get the indexes of the misclassified elements
+    _, (test_data, test_labels) = get_train_test_data(rgb=True)
+    predictions = np.loadtxt('../in/predictions.csv')
+    mask_miss, mask_label = get_data_masks(test_labels, predictions, label=5)
+    mask_miss_label = mask_miss[mask_label]
+    miss_idxs = np.argwhere(mask_miss_label)
     # Find the number of misclassified elements for each cluster
     return len([entry for entry in cluster if entry in miss_idxs]) / len(cluster)
 
