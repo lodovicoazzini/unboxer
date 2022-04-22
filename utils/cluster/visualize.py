@@ -113,7 +113,7 @@ def visualize_clusters_images(
         images_filtered_sample = images_filtered
         label_predictions_sample = label_predictions
         overlay_filtered_sample = overlay_filtered
-        if images_filtered.shape[0] > max_samples:
+        if max_samples is not None and images_filtered.shape[0] > max_samples:
             sample_idxs = np.random.choice(images_filtered.shape[0], max_samples, replace=False)
             images_filtered_sample = images_filtered[sample_idxs]
             label_predictions_sample = label_predictions[sample_idxs]
