@@ -8,9 +8,12 @@ from clusim.clustering import Clustering
 from keras.utils.np_utils import to_categorical
 from matplotlib import pyplot as plt
 
-from config import HEATMAPS_PROCESS_MODE, EXPLAINERS, DIM_RED_TECHS, CLUS_TECH, ITERATIONS, CLUS_SIM
+from config import HEATMAPS_PROCESS_MODE, EXPLAINERS, DIM_RED_TECHS, CLUS_TECH, ITERATIONS, CLUS_SIM, \
+    CLUSTERS_SORT_METRIC, \
+    MAX_LABELS, MAX_SAMPLES
 from config_dirs import CLASSIFIER_PATH
 from utils.cluster.compare import compare_approaches
+from utils.cluster.postprocessing import sorted_clusters
 from utils.cluster.preprocessing import distance_matrix
 from utils.cluster.visualize import visualize_clusters_projections, visualize_clusters_images
 from utils.dataset import get_train_test_data, get_data_masks
@@ -110,48 +113,54 @@ if __name__ == '__main__':
             'contributions'
         ]]
         # Convert the clusters to membership list
-        clusters = np.array(Clustering().from_cluster_list(clusters).to_membership_list())
+        clusters_membership = np.array(Clustering().from_cluster_list(clusters).to_membership_list())
         # Get the mask for the misclassified items of the selected label
         mask_miss_label = mask_miss[mask_label]
         # Get the mask for the clusters containing misclassified elements of the selected label
-        mask_contains_miss_label = np.isin(clusters, np.unique(clusters[mask_miss_label]))
+        mask_contains_miss_label = np.isin(clusters_membership, np.unique(clusters_membership[mask_miss_label]))
 
         # Visualize the projections of the contributions for the correct predictions
         fig, ax = visualize_clusters_projections(
             projections=projections[~mask_miss_label & mask_contains_miss_label],
-            clusters=clusters[~mask_miss_label & mask_contains_miss_label],
+            clusters=clusters_membership[~mask_miss_label & mask_contains_miss_label],
             cmap='tab10', marker='.'
         )
         # Visualize the projections of the contributions for the wrong predictions
         visualize_clusters_projections(
             projections=projections[mask_miss_label],
-            clusters=clusters[mask_miss_label],
+            clusters=clusters_membership[mask_miss_label],
             fig=fig, ax=ax, cmap='tab10', marker='X', label_prefix='mis'
         )
         ax.set_title(f'{explainer} clusters projections')
         save_figure(fig, f'{BASE_DIR}/{explainer}/clusters_projections')
 
         # Sample some clusters labels containing misclassified items
-        clusters_labels = np.unique(clusters[mask_contains_miss_label])
+        clusters_labels = np.unique(clusters_membership[mask_contains_miss_label])
         sample_labels = np.random.choice(clusters_labels, min(4, len(clusters_labels)), replace=False)
-        sample_mask = np.isin(clusters, sample_labels)
+        sample_mask = np.isin(clusters_membership, sample_labels)
+        # Sort the clusters if a sorting parameter is provided
+        if CLUSTERS_SORT_METRIC is not None:
+            clusters = sorted_clusters(clusters, metric=CLUSTERS_SORT_METRIC)
+            clusters_membership = np.array(Clustering().from_cluster_list(clusters).to_membership_list())
         # Show some correctly classified images for clusters containing also misclassified images
         fig, _ = visualize_clusters_images(
-            clusters=clusters[mask_contains_miss_label & ~mask_miss_label & sample_mask],
+            clusters=clusters_membership[mask_contains_miss_label & ~mask_miss_label & sample_mask],
             images=test_data_gs[mask_label][mask_contains_miss_label & ~mask_miss_label & sample_mask],
             predictions=predictions[mask_label][mask_contains_miss_label & ~mask_miss_label & sample_mask],
             overlay=contributions[mask_contains_miss_label & ~mask_miss_label & sample_mask],
-            max_samples=3,
+            max_samples=MAX_SAMPLES,
+            max_labels=MAX_LABELS,
             cmap='gray_r'
         )
         save_figure(fig, f'{BASE_DIR}/{explainer}/clusters_correct_images')
         # Show some incorrectly classified images for clusters containing also misclassified images
         fig, _ = visualize_clusters_images(
-            clusters=clusters[mask_contains_miss_label & mask_miss_label & sample_mask],
+            clusters=clusters_membership[mask_contains_miss_label & mask_miss_label & sample_mask],
             images=test_data_gs[mask_label][mask_contains_miss_label & mask_miss_label & sample_mask],
             predictions=predictions[mask_label][mask_contains_miss_label & mask_miss_label & sample_mask],
             overlay=contributions[mask_contains_miss_label & mask_miss_label & sample_mask],
-            max_samples=3,
+            max_samples=MAX_SAMPLES,
+            max_labels=MAX_LABELS,
             cmap='gray_r'
         )
         save_figure(fig, f'{BASE_DIR}/{explainer}/clusters_misclassified_images')

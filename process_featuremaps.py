@@ -7,8 +7,9 @@ from clusim.sim import element_sim
 from keras.utils.np_utils import to_categorical
 from sklearn.manifold import TSNE
 
-from config import FEATUREMAPS_CLUSTERS_MODE
+from config import FEATUREMAPS_CLUSTERS_MODE, CLUSTERS_SORT_METRIC, MAX_SAMPLES, MAX_LABELS
 from config_dirs import CLASSIFIER_PATH
+from utils.cluster.postprocessing import sorted_clusters
 from utils.cluster.preprocessing import extract_maps_clusters, distance_matrix
 from utils.cluster.visualize import visualize_clusters_projections, visualize_clusters_images
 from utils.dataset import get_train_test_data, get_data_masks
@@ -65,44 +66,51 @@ if __name__ == '__main__':
     print('Showing the clusters projections and some sample images ...')
     # Show the clusters projections for each feature combination
     for feature_combination, clusters in zip(featuremaps_df.index, featuremaps_clusters):
-        clusters = np.array(clusters.to_membership_list())
+        clusters_membership = np.array(clusters.to_membership_list())
         # Get the mask for the clusters containing misclassified elements of the selected label
-        mask_contains_miss_label = np.isin(clusters, np.unique(clusters[mask_miss_label]))
+        mask_contains_miss_label = np.isin(clusters_membership, np.unique(clusters_membership[mask_miss_label]))
         # Show the correct classifications
         fig, ax = visualize_clusters_projections(
             projections=projections[~mask_miss_label & mask_contains_miss_label],
-            clusters=clusters[~mask_miss_label & mask_contains_miss_label],
+            clusters=clusters_membership[~mask_miss_label & mask_contains_miss_label],
             cmap='tab10', marker='.'
         )
         # Show the misclassified items
         visualize_clusters_projections(
             projections=projections[mask_miss_label],
-            clusters=clusters[mask_miss_label],
+            clusters=clusters_membership[mask_miss_label],
             fig=fig, ax=ax, cmap='tab10', marker='X', label_prefix='mis'
         )
         fig.suptitle(f'Clusters projections for the features {feature_combination}')
         save_figure(fig, f'{BASE_DIR}/clusters_projections_{feature_combination}')
 
         # sample some clusters labels containing misclassified items
-        unique_labels = np.unique(clusters[mask_contains_miss_label])
+        unique_labels = np.unique(clusters_membership[mask_contains_miss_label])
         sample_labels = np.random.choice(unique_labels, min(4, len(unique_labels)), replace=False)
-        sample_mask = np.isin(clusters, sample_labels)
+        sample_mask = np.isin(clusters_membership, sample_labels)
+        # Sort the clusters
+        if CLUSTERS_SORT_METRIC is not None:
+            clusters_list = clusters.to_cluster_list()
+            clusters_list = sorted_clusters(clusters_list, metric=CLUSTERS_SORT_METRIC)
+            clusters_membership = np.array(Clustering().from_cluster_list(clusters_list).to_membership_list())
         # show some correctly classified images for clusters containing also misclassified images
         fig, _ = visualize_clusters_images(
-            clusters=clusters[mask_contains_miss_label & ~mask_miss_label & sample_mask],
+            clusters=clusters_membership[mask_contains_miss_label & ~mask_miss_label & sample_mask],
             images=test_data_gs[mask_label][mask_contains_miss_label & ~mask_miss_label & sample_mask],
             predictions=predictions[mask_label][mask_contains_miss_label & ~mask_miss_label & sample_mask],
-            max_samples=3,
+            max_samples=MAX_SAMPLES,
+            max_labels=MAX_LABELS,
             cmap='gray_r'
         )
         fig.suptitle(f'Correctly classified items for {feature_combination}')
         save_figure(fig, f'{BASE_DIR}/correct_samples_{feature_combination}')
         # show some incorrectly classified images for clusters containing also misclassified images
         fig, _ = visualize_clusters_images(
-            clusters=clusters[mask_contains_miss_label & mask_miss_label & sample_mask],
+            clusters=clusters_membership[mask_contains_miss_label & mask_miss_label & sample_mask],
             images=test_data_gs[mask_label][mask_contains_miss_label & mask_miss_label & sample_mask],
             predictions=predictions[mask_label][mask_contains_miss_label & mask_miss_label & sample_mask],
-            max_samples=3,
+            max_samples=MAX_SAMPLES,
+            max_labels=MAX_LABELS,
             cmap='gray_r'
         )
         fig.suptitle(f'Misclassified classified items for {feature_combination}')
