@@ -65,32 +65,42 @@ def generate_contributions(
 
 def extract_maps_clusters():
     # Create the base dataframe with the features and the cells containing the clusters
-    clusters_df = pd.read_pickle('in/featuremaps_data')
-    clusters_df = clusters_df.set_index('approach')
+    original_df = pd.read_pickle('in/featuremaps_data')
+    original_df['mode'] = 'original'
 
-    # Get the number of clusters
-    clusters_df['clusters_list'] = clusters_df['clusters'].apply(get_clusters_list)
-    clusters_df['num_clusters'] = clusters_df['clusters_list'].apply(len)
-    # Get the size of the cluster in each cell
-    clusters_df['cells_size'] = clusters_df['clusters'].apply(
-        np.vectorize(lambda cell: len(cell) if cell is not None else 0))
+    # Compute the merged clusters
+    merged_df = pd.DataFrame.copy(original_df, deep=True)
+    # Compute the number of items in each cell
+    merged_df['cells_size'] = merged_df['clusters'].apply(
+        np.vectorize(lambda cell: len(cell) if cell is not None else 0)
+    )
     # Get the matrix for the connected components
     shape = [
         [0, 1, 0],
         [1, 1, 1],
         [0, 1, 0]
     ]
-    clusters_df['connected_components'] = clusters_df['cells_size'].apply(lambda matrix: label(matrix, shape)[0])
-    clusters_df['num_connected_components'] = clusters_df['connected_components'].apply(
-        lambda matrix: len(np.unique(matrix)))
+    merged_df['connected_components'] = merged_df['cells_size'].apply(lambda matrix: label(matrix, shape)[0])
+    # Get the list of merged clusters
+    merged_df['clusters_list'] = merged_df.apply(
+        lambda row: merge_clusters(row['clusters'], row['connected_components'])
+        , axis=1
+    )
+    merged_df['mode'] = 'reduced'
 
-    clusters_df['merged_clusters_list'] = clusters_df.apply(
-        lambda row: merge_clusters(row['clusters'], row['connected_components']), axis=1)
-    clusters_df['num_merged_clusters'] = clusters_df['merged_clusters_list'].apply(len)
+    # Fix the columns before merging
+    original_df['clusters_list'] = original_df['clusters'].apply(get_clusters_list)
+    merged_df = merged_df.drop(columns=['connected_components', 'cells_size'])
 
-    clusters_df.to_pickle('logs/feature_combinations_clusters')
+    # Merge the two datasets
+    complete_df = pd.concat([original_df, merged_df])
+    complete_df = complete_df.drop(columns='clusters')
+    complete_df = complete_df.rename({'clusters_list': 'clusters'}, axis=1)
+    complete_df = complete_df.sort_values(['map_size', 'approach', 'mode']).reset_index(drop=True)
 
-    return clusters_df
+    complete_df.to_pickle('logs/feature_combinations_clusters')
+
+    return complete_df
 
 
 def get_clusters_list(matrix):

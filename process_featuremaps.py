@@ -27,15 +27,20 @@ if __name__ == '__main__':
 
     # Compute the distance matrix
     print('Computing the distance matrix ...')
+    filtered_featuremaps_df = featuremaps_df[featuremaps_df['mode'] == FEATUREMAPS_CLUSTERS_MODE.value]
     featuremaps_clusters = [
         Clustering().from_cluster_list(clusters_configuration)
-        for clusters_configuration in featuremaps_df[FEATUREMAPS_CLUSTERS_MODE.value].values
+        for clusters_configuration in filtered_featuremaps_df['clusters'].values
     ]
+    filtered_featuremaps_df['complete_approach'] = filtered_featuremaps_df.apply(
+        lambda row: f'{row["approach"]}({row["map_size"]})_{row["mode"]}',
+        axis=1
+    )
     distance_matrix, fig, ax = distance_matrix(
         featuremaps_clusters,
         lambda l, r: 1 - element_sim(l, r),
         show_map=True,
-        names=featuremaps_df.index
+        names=filtered_featuremaps_df['complete_approach']
     )
     ax.set_title('Distance matrix for the feature combinations')
     save_figure(fig, f'{BASE_DIR}/distance_matrix')
@@ -65,7 +70,7 @@ if __name__ == '__main__':
 
     print('Showing the clusters projections and some sample images ...')
     # Show the clusters projections for each feature combination
-    for feature_combination, clusters in zip(featuremaps_df.index, featuremaps_clusters):
+    for feature_combination, clusters in zip(filtered_featuremaps_df['complete_approach'].values, featuremaps_clusters):
         clusters_membership = np.array(clusters.to_membership_list())
         # Get the mask for the clusters containing misclassified elements of the selected label
         mask_contains_miss_label = np.isin(clusters_membership, np.unique(clusters_membership[mask_miss_label]))
