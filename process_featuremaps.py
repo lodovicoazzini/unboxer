@@ -74,17 +74,11 @@ if __name__ == '__main__':
         clusters_membership = np.array(clusters.to_membership_list())
         # Get the mask for the clusters containing misclassified elements of the selected label
         mask_contains_miss_label = np.isin(clusters_membership, np.unique(clusters_membership[mask_miss_label]))
-        # Show the correct classifications
+        # Show the clusters projections
         fig, ax = visualize_clusters_projections(
-            projections=projections[~mask_miss_label & mask_contains_miss_label],
-            clusters=clusters_membership[~mask_miss_label & mask_contains_miss_label],
-            cmap='tab10', marker='.'
-        )
-        # Show the misclassified items
-        visualize_clusters_projections(
-            projections=projections[mask_miss_label],
-            clusters=clusters_membership[mask_miss_label],
-            fig=fig, ax=ax, cmap='tab10', marker='X', label_prefix='mis'
+            projections=projections,
+            clusters=clusters_membership,
+            mask=mask_miss_label
         )
         fig.suptitle(f'Clusters projections for the features {feature_combination}')
         save_figure(fig, f'{BASE_DIR}/clusters_projections_{feature_combination}')

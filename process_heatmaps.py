@@ -1,17 +1,20 @@
+import os.path
 import warnings
 from itertools import product
 
 import numpy as np
+import pandas as pd
 import seaborn as sns
 import tensorflow as tf
 from clusim.clustering import Clustering
 from keras.utils.np_utils import to_categorical
 from matplotlib import pyplot as plt
+from sklearn.manifold import TSNE
 
 from config import HEATMAPS_PROCESS_MODE, EXPLAINERS, DIM_RED_TECHS, CLUS_TECH, ITERATIONS, CLUS_SIM, \
     CLUSTERS_SORT_METRIC, \
     MAX_LABELS, MAX_SAMPLES
-from config_dirs import CLASSIFIER_PATH
+from config_dirs import CLASSIFIER_PATH, BEST_CONFIGURATIONS, PREDICTIONS_PATH, HEATMAPS_DATA
 from utils.cluster.compare import compare_approaches
 from utils.cluster.postprocessing import sorted_clusters
 from utils.cluster.preprocessing import distance_matrix
@@ -34,30 +37,66 @@ if __name__ == '__main__':
     # Load the model and the predictions
     print('Loading the model and the predictions ...')
     classifier = tf.keras.models.load_model(CLASSIFIER_PATH)
-    predictions = np.loadtxt('in/predictions.csv')
+    predictions = np.loadtxt(PREDICTIONS_PATH)
     predictions_cat = to_categorical(predictions, num_classes=len(set(train_labels)))
     # Get the masks to filter the data
     mask_miss, mask_label = get_data_masks(test_labels, predictions, label=5, verbose=True)
 
     print('Collecting the heatmaps data ...')
-    # Compare the approaches in the config file
-    approaches = [
-        HEATMAPS_PROCESS_MODE(
-            mask=mask_label,
-            explainer=explainer(classifier),
-            dim_red_techs=dim_red_techs,
-            clus_tech=CLUS_TECH
+    if os.path.exists(HEATMAPS_DATA):
+        df = pd.read_pickle(HEATMAPS_DATA)
+    else:
+        # Compare the approaches in the config file
+        if not os.path.exists(BEST_CONFIGURATIONS):
+            # Find the best settings for each approach
+            approaches = [
+                HEATMAPS_PROCESS_MODE(
+                    mask=mask_label,
+                    explainer=explainer(classifier),
+                    dim_red_techs=dim_red_techs,
+                    clus_tech=CLUS_TECH
+                )
+                for explainer, dim_red_techs in product(EXPLAINERS, DIM_RED_TECHS)
+            ]
+        else:
+            # Read the data about the best approaches
+            best_configs = pd.read_csv(BEST_CONFIGURATIONS)
+            best_configs = best_configs.set_index('explainer')
+            # Find the best settings for each approach
+            approaches = []
+            for explainer in EXPLAINERS:
+                try:
+                    best_config = best_configs.loc[explainer(classifier).__class__.__name__]
+                    approaches.append(
+                        HEATMAPS_PROCESS_MODE(
+                            mask=mask_label,
+                            explainer=explainer(classifier),
+                            dim_red_techs=[TSNE(perplexity=best_config['perplexity'])],
+                            clus_tech=CLUS_TECH
+                        )
+                    )
+                except KeyError:
+                    # No best configuration for the explainer
+                    for approach in [
+                        HEATMAPS_PROCESS_MODE(
+                            mask=mask_label,
+                            explainer=explainer(classifier),
+                            dim_red_techs=dim_red_techs,
+                            clus_tech=CLUS_TECH
+                        )
+                        for explainer, dim_red_techs in product([explainer], DIM_RED_TECHS)
+                    ]:
+                        approaches.append(approach)
+
+        # Collect the data for the approaches
+        df = compare_approaches(
+            approaches=approaches,
+            data=test_data,
+            predictions=predictions_cat,
+            iterations=ITERATIONS,
+            verbose=True
         )
-        for explainer, dim_red_techs in product(EXPLAINERS, DIM_RED_TECHS)
-    ]
-    # Collect the data for the approaches
-    df = compare_approaches(
-        approaches=approaches,
-        data=test_data,
-        predictions=predictions_cat,
-        iterations=ITERATIONS,
-        verbose=True
-    )
+        df.to_pickle(HEATMAPS_DATA)
 
     # Find the best configuration for each explainer
     df['perplexity'] = df['dim_red_techs_params'].apply(lambda params: float(params[-1]['perplexity']))
@@ -73,7 +112,11 @@ if __name__ == '__main__':
     )
     # Filter the dataset for the entries corresponding to the best configuration for each explainer
     filtered_df = df[df[['explainer', 'perplexity']].apply(tuple, axis=1).isin(best_config_combs)]
-    filtered_df.to_csv('logs/heatmaps_data.csv', index=False)
+    filtered_df = filtered_df[filtered_df['silhouette'] != None]
+
+    # Save the best configurations
+    best_configs_df = filtered_df[['explainer', 'perplexity']].groupby('explainer').min().reset_index(drop=False)
+    best_configs_df.to_csv(BEST_CONFIGURATIONS, index=False)
 
     print('Computing the distance matrix ...')
     # Get the data for the best configurations
@@ -119,17 +162,11 @@ if __name__ == '__main__':
         # Get the mask for the clusters containing misclassified elements of the selected label
         mask_contains_miss_label = np.isin(clusters_membership, np.unique(clusters_membership[mask_miss_label]))
 
-        # Visualize the projections of the contributions for the correct predictions
+        # Visualize the projections of the contributions clusters
         fig, ax = visualize_clusters_projections(
-            projections=projections[~mask_miss_label & mask_contains_miss_label],
-            clusters=clusters_membership[~mask_miss_label & mask_contains_miss_label],
-            cmap='tab10', marker='.'
-        )
-        # Visualize the projections of the contributions for the wrong predictions
-        visualize_clusters_projections(
-            projections=projections[mask_miss_label],
-            clusters=clusters_membership[mask_miss_label],
-            fig=fig, ax=ax, cmap='tab10', marker='X', label_prefix='mis'
+            projections=projections,
+            clusters=clusters_membership,
+            mask=mask_miss_label
         )
         ax.set_title(f'{explainer} clusters projections')
         save_figure(fig, f'{BASE_DIR}/{explainer}/clusters_projections')

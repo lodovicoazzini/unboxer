@@ -6,43 +6,25 @@ from matplotlib import pyplot as plt
 def visualize_clusters_projections(
         projections: np.ndarray,
         clusters: np.ndarray,
-        fig=None, ax=None,
-        marker='o', size=30, edge_color='#000000',
-        cmap='tab10', label_prefix: str = None
+        mask
 ):
-    # prepare the general figure if not provided
-    if fig is None or ax is None:
-        fig, ax = plt.subplots(figsize=(16, 9))
-    # remove the axis, ticks and labels
+    # Prepare the general figure if not provided
+    fig = plt.figure(figsize=(16, 9))
+    # Remove the axis, ticks and labels
     sns.despine(left=True, bottom=True)
+
+    # Plot the data
+    ax = sns.scatterplot(
+        x=[projection[0] for projection in projections],
+        y=[projection[1] for projection in projections],
+        hue=clusters,
+        style=['misclassified' if v else 'correct' for v in mask],
+        palette=sns.color_palette('viridis', n_colors=len(set(clusters)))
+    )
+    # Style
     ax.tick_params(left=False, bottom=False)
     ax.set(xticklabels=[], yticklabels=[])
-
-    # associate one cluster label for each color
-    cluster_labels = sorted(set(clusters))
-    colors = [plt.cm.get_cmap(cmap)(val) for val in np.linspace(0, 1, len(cluster_labels))]
-    colors_dict = {label: colors[idx] for idx, label in enumerate(cluster_labels)}
-    # associate black with noise
-    if -1 in cluster_labels:
-        colors_dict[-1] = (0, 0, 0, 1)
-
-    for label, color in colors_dict.items():
-        # plot the core samples
-        projections_filtered = projections[clusters == label]
-        if label == -1:
-            label_str = 'no cluster'
-        elif label_prefix is not None:
-            label_str = '_'.join([label_prefix, str(label)])
-        else:
-            label_str = str(label)
-        ax.scatter(
-            projections_filtered[:, 0], projections_filtered[:, 1],
-            marker='x' if label == -1 else marker, c=[color], edgecolors=edge_color,
-            label=label_str,
-            s=size
-        )
-        # add the legend
-        ax.legend(ncol=3)
+    ax.legend(ncol=5)
 
     return fig, ax
 
