@@ -25,8 +25,11 @@ def compare_approaches(
         dim_red_techs_params = [dim_red_tech.get_params() for dim_red_tech in dim_red_techs]
 
         if verbose:
+            perplexity = dim_red_techs_params[-1]['perplexity']
             sys.stdout.write('\r')
-            sys.stdout.write(f'{idx}/{len(approaches)}\n')
+            sys.stdout.write(
+                f'{idx + 1}/{len(approaches)} - {explainer.__class__.__name__} (perplexity={perplexity})\n'
+            )
 
         # generate the contributions
         start = time.time()
