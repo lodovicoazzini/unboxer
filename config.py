@@ -14,11 +14,11 @@ EXPLAINERS = [
     GradCAM,
     GradCAMPP,
     GuidedBackprop,
-    lambda classifier: SmoothGrad(classifier, nb_samples=50, noise=.3, batch_size=BATCH_SIZE),
+    lambda classifier: SmoothGrad(classifier, nb_samples=100, noise=.3, batch_size=BATCH_SIZE),
     lambda classifier: IntegratedGradients(classifier, steps=50, batch_size=BATCH_SIZE),
     lambda classifier: Rise(classifier, nb_samples=4000, batch_size=BATCH_SIZE),
-    lambda classifier: KernelShap(classifier, nb_samples=1000),
-    lambda classifier: Lime(classifier, nb_samples=1000),
+    lambda classifier: KernelShap(classifier, nb_samples=100),
+    lambda classifier: Lime(classifier, nb_samples=100),
     lambda classifier: Occlusion(classifier, patch_size=10, patch_stride=10, batch_size=BATCH_SIZE),
 ]
 DIM_RED_TECHS = [[TSNE(perplexity=perplexity)] for perplexity in range(1, 16, 2)]
