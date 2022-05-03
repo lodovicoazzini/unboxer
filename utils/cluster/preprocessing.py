@@ -8,7 +8,7 @@ from scipy.ndimage import label
 from utils.image_similarity.intensity_based import euclidean_distance
 
 
-def distance_matrix(heatmaps, dist_func=euclidean_distance, show_map=False, names=None):
+def distance_matrix(heatmaps, dist_func=euclidean_distance, show_map=False, names=None, annot=True, zero_diag=True):
     """
     Compute the distance matrix for a list of heatmaps
     """
@@ -33,14 +33,17 @@ def distance_matrix(heatmaps, dist_func=euclidean_distance, show_map=False, name
         )
         dist_matrix_df = dist_matrix_df.groupby(dist_matrix_df.columns, axis=1).mean()
         dist_matrix_df = dist_matrix_df.groupby(dist_matrix_df.index, axis=0).mean()
+        if zero_diag:
+            np.fill_diagonal(dist_matrix_df.values, np.nan)
         fig = plt.figure(figsize=(10, 10))
         ax = sns.heatmap(
             dist_matrix_df,
+            annot=annot,
             cmap='OrRd',
             linewidth=.1,
             vmin=0, vmax=1
         )
-        plt.xticks(rotation=45)
+        plt.xticks(rotation=90)
         plt.yticks(rotation=0)
 
         return dist_matrix_df, fig, ax
