@@ -42,15 +42,27 @@ def get_non_unique_membership_list(clusters) -> list:
     ]
 
 
-def filter_clusters(clusters, mask):
+def get_filtered_clusters(clusters, mask):
     """
-    Filter the clusters based on a mask relative to the clusters' entities.
+    Get the clusters for the masked elements.
     """
     # Get the indexes for the mask
-    masked_idxs = np.argwhere(mask)
+    masked_idxs = np.argwhere(mask).flatten()
     # Filter the elements in the clusters for the misclassified ones
     membership = np.array(Clustering().from_cluster_list(clusters).to_membership_list())
-    mask_membership = [e for es in membership[masked_idxs] for e in es]
-    mask_clusters = Clustering().from_membership_list(mask_membership).to_cluster_list()
+    masked_membership = membership[masked_idxs]
+    masked_clusters = Clustering().from_membership_list(masked_membership).to_cluster_list()
 
-    return mask_clusters
+    return masked_clusters
+
+
+def get_clusters_containing(clusters, mask):
+    """
+    Get the clusters containing at least one masked element.
+    """
+    # Get the indexes for the mask
+    masked_idxs = np.argwhere(mask).flatten()
+    # Filter the clusters for those containing at least one masked element
+    masked_clusters = [cluster for cluster in clusters if len(set(cluster).intersection(set(masked_idxs))) > 0]
+
+    return masked_clusters
