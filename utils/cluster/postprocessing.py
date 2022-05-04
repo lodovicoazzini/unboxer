@@ -5,19 +5,54 @@ from config_dirs import PREDICTIONS_PATH
 from utils.dataset import get_train_test_data, get_data_masks
 
 
-def get_frac_misses(cluster) -> float:
+def get_misses_count(cluster, predictions=None) -> float:
+    """
+    Find the number of misclassified elements in a cluster.
+    """
+    # Get the indexes for the misclassified elements
+    # Get the indexes of the misclassified elements
+    if predictions is None:
+        predictions = np.loadtxt(PREDICTIONS_PATH)
+    _, (test_data, test_labels) = get_train_test_data(rgb=True)
+    mask_miss, mask_label = get_data_masks(test_labels, predictions, label=5)
+    mask_miss_label = mask_miss[mask_label]
+    miss_idxs = np.argwhere(mask_miss_label).flatten()
+    # Find the number of misclassified elements for each cluster
+    return len([entry for entry in cluster if entry in miss_idxs])
+
+
+def get_frac_misses(cluster, predictions=None) -> float:
     """
     Find the fraction of misclassified elements in each cluster.
     """
     # Get the indexes for the misclassified elements
     # Get the indexes of the misclassified elements
+    count_misses = get_misses_count(cluster, predictions=predictions)
+    # Find the number of misclassified elements for each cluster
+    return count_misses / len(cluster)
+
+
+def get_labels_purity(cluster, predictions=None) -> float:
     _, (test_data, test_labels) = get_train_test_data(rgb=True)
-    predictions = np.loadtxt(PREDICTIONS_PATH)
+    if predictions is None:
+        predictions = np.loadtxt(PREDICTIONS_PATH)
+
     mask_miss, mask_label = get_data_masks(test_labels, predictions, label=5)
     mask_miss_label = mask_miss[mask_label]
-    miss_idxs = np.argwhere(mask_miss_label)
-    # Find the number of misclassified elements for each cluster
-    return len([entry for entry in cluster if entry in miss_idxs]) / len(cluster)
+    miss_idxs = np.argwhere(mask_miss_label).flatten()
+    # Find the misclassified entries in the cluster
+    masked_entries = [entry for entry in cluster if entry in miss_idxs]
+    # If there are no misclassified entries return -1
+    if len(masked_entries) == 0:
+        return 0
+
+    # Find the labels for the misclassified elements in the cluster
+    masked_labels = predictions[mask_label][masked_entries]
+    # Compute the purity of the cluster as the weighted average of the fraction of occurrences of each label
+    labels, counts = np.unique(masked_labels, return_counts=True)
+    purity = np.average(counts / len(masked_labels), weights=counts)
+
+    return purity
 
 
 def sorted_clusters(clusters, metric: callable):

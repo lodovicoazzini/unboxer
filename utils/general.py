@@ -30,6 +30,13 @@ def shorten_list(original: np.ndarray, size: int) -> np.ndarray:
     return np.mean(original[:rounded_len].reshape(-1, window_size), axis=1)
 
 
+def weight_values(values: np.array, weights: np.array) -> np.array:
+    max_weight = weights.max()
+    zipped = np.column_stack((values, weights))
+    weighted = np.array([value * math.log((math.e - 1) * weight / max_weight + 1) for value, weight in zipped])
+    return weighted
+
+
 def weight_not_null(df: pd.DataFrame, group_by, agg_column: str, metric='mean') -> pd.DataFrame:
     """
     Weighting a column metric based on the number of non-null entries in the column.
@@ -42,6 +49,17 @@ def weight_not_null(df: pd.DataFrame, group_by, agg_column: str, metric='mean') 
         axis=1
     )
     return aggregated
+
+
+def weight_by_values(df: pd.DataFrame, column: str, weights: str) -> pd.DataFrame:
+    result = pd.DataFrame.copy(df, deep=True)
+    max_weight = result[weights].max()
+    result[f'{column}_weighted'] = result.apply(
+        lambda row: row[column] * math.log((math.e - 1) * row[weights] / max_weight + 1),
+        axis=1
+    )
+
+    return result
 
 
 def get_common_clusters(clusters_list, mask=None):
@@ -75,3 +93,30 @@ def get_common_clusters(clusters_list, mask=None):
     intersections_counts = sorted(intersections_counts, key=lambda entry: (-entry[1], -len(entry[0])))
 
     return intersections_counts
+
+
+def get_balanced_samples(
+        elements: np.array,
+        sample_size: int,
+        balanced_by: np.array,
+        weights: np.array = None
+) -> tuple[np.array, np.array]:
+    # Get the weights to use for selecting the balanced samples
+    if weights is not None:
+        weighted_first = weight_values(balanced_by, weights)
+        weighted_last = weight_values(1 - balanced_by, weights)
+    else:
+        weighted_first = balanced_by
+        weighted_last = - balanced_by
+
+    # Find the sizes for the samples
+    sample_size = min(len(elements), sample_size)
+    sample_size_first = math.ceil(sample_size / 2)
+    sample_size_last = math.floor(sample_size / 2)
+
+    # Get the indices for the first sample
+    pure_idxs = weighted_first.argsort()[::-1][:sample_size_first]
+    # Get the indices for the second sample
+    impure_idxs = np.array([idx for idx in weighted_last.argsort()[::-1] if idx not in pure_idxs])[:sample_size_last]
+
+    return elements[pure_idxs], elements[impure_idxs]
