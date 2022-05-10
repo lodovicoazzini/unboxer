@@ -1,0 +1,11 @@
+.DS_Store
+.idea/
+.venv/
+**/__pycache__/
+
+pypotrace/
+
+*.meta
+
+MNIST/logs/*
+!MNIST/logs/readme.md
