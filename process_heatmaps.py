@@ -43,60 +43,58 @@ if __name__ == '__main__':
     mask_miss, mask_label = get_data_masks(test_labels, predictions, label=5, verbose=True)
 
     print('Collecting the heatmaps data ...')
-    if os.path.exists(HEATMAPS_DATA):
-        df = pd.read_pickle(HEATMAPS_DATA)
-    else:
-        # Compare the approaches in the config file
-        if not os.path.exists(BEST_CONFIGURATIONS):
-            # Find the best settings for each approach
-            approaches = [
-                HEATMAPS_PROCESS_MODE(
-                    mask=mask_label,
-                    explainer=explainer(classifier),
-                    dim_red_techs=dim_red_techs,
-                    clus_tech=CLUS_TECH
-                )
-                for explainer, dim_red_techs in product(EXPLAINERS, DIM_RED_TECHS)
-            ]
-        else:
-            # Read the data about the best approaches
-            best_configs = pd.read_csv(BEST_CONFIGURATIONS)
-            best_configs = best_configs.set_index('explainer')
-            # Find the best settings for each approach
-            approaches = []
-            for explainer in EXPLAINERS:
-                try:
-                    best_config = best_configs.loc[explainer(classifier).__class__.__name__]
-                    approaches.append(
-                        HEATMAPS_PROCESS_MODE(
-                            mask=mask_label,
-                            explainer=explainer(classifier),
-                            dim_red_techs=[TSNE(perplexity=best_config['perplexity'])],
-                            clus_tech=CLUS_TECH
-                        )
-                    )
-                except KeyError:
-                    # No best configuration for the explainer
-                    for approach in [
-                        HEATMAPS_PROCESS_MODE(
-                            mask=mask_label,
-                            explainer=explainer(classifier),
-                            dim_red_techs=dim_red_techs,
-                            clus_tech=CLUS_TECH
-                        )
-                        for explainer, dim_red_techs in product([explainer], DIM_RED_TECHS)
-                    ]:
-                        approaches.append(approach)
 
-        # Collect the data for the approaches
-        df = compare_approaches(
-            approaches=approaches,
-            data=test_data,
-            predictions=predictions_cat,
-            iterations=ITERATIONS,
-            verbose=True
-        )
-        df.to_pickle(HEATMAPS_DATA)
+    # Compare the approaches in the config file
+    if not os.path.exists(BEST_CONFIGURATIONS):
+        # Find the best settings for each approach
+        approaches = [
+            HEATMAPS_PROCESS_MODE(
+                mask=mask_label,
+                explainer=explainer(classifier),
+                dim_red_techs=dim_red_techs,
+                clus_tech=CLUS_TECH
+            )
+            for explainer, dim_red_techs in product(EXPLAINERS, DIM_RED_TECHS)
+        ]
+    else:
+        # Read the data about the best approaches
+        best_configs = pd.read_csv(BEST_CONFIGURATIONS)
+        best_configs = best_configs.set_index('explainer')
+        # Find the best settings for each approach
+        approaches = []
+        for explainer in EXPLAINERS:
+            try:
+                best_config = best_configs.loc[explainer(classifier).__class__.__name__]
+                approaches.append(
+                    HEATMAPS_PROCESS_MODE(
+                        mask=mask_label,
+                        explainer=explainer(classifier),
+                        dim_red_techs=[TSNE(perplexity=best_config['perplexity'])],
+                        clus_tech=CLUS_TECH
+                    )
+                )
+            except KeyError:
+                # No best configuration for the explainer
+                for approach in [
+                    HEATMAPS_PROCESS_MODE(
+                        mask=mask_label,
+                        explainer=explainer(classifier),
+                        dim_red_techs=dim_red_techs,
+                        clus_tech=CLUS_TECH
+                    )
+                    for explainer, dim_red_techs in product([explainer], DIM_RED_TECHS)
+                ]:
+                    approaches.append(approach)
+
+    # Collect the data for the approaches
+    df = compare_approaches(
+        approaches=approaches,
+        data=test_data,
+        predictions=predictions_cat,
+        iterations=ITERATIONS,
+        verbose=True
+    )
+    df.to_pickle(HEATMAPS_DATA)
 
     # Find the best configuration for each explainer
     df['perplexity'] = df['dim_red_techs_params'].apply(lambda params: float(params[-1]['perplexity']))

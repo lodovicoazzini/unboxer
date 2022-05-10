@@ -1,3 +1,5 @@
+from collections import Counter
+
 import numpy as np
 from clusim.clustering import Clustering
 
@@ -101,3 +103,8 @@ def get_clusters_containing(clusters, mask):
     masked_clusters = [cluster for cluster in clusters if len(set(cluster).intersection(set(masked_idxs))) > 0]
 
     return masked_clusters
+
+
+def get_popularity_score(clusters_config, all_clusters, sample_size) -> float:
+    clusters_popularity = Counter(map(tuple, all_clusters))
+    return np.average([clusters_popularity[tuple(cluster)] / sample_size for cluster in clusters_config])

@@ -1,3 +1,5 @@
+import math
+
 import numpy as np
 import seaborn as sns
 from matplotlib import pyplot as plt
@@ -126,5 +128,60 @@ def visualize_clusters_images(
     # Remove the last row
     for ax_i in ax[-1]:
         fig.delaxes(ax_i)
+
+    return fig, ax
+
+
+def visualize_cluster_images(
+        cluster,
+        images,
+        overlays=None,
+        predictions=None,
+        cmap='gray_r',
+        overlay_cmap='Reds',
+        overlay_alpha=.7,
+        imgs_per_row=6,
+        max_images=36
+):
+    # Sample the images if too many
+    if len(cluster) > max_images and predictions is not None:
+        # Sample some misclassified indexes
+        miss_idxs = np.argwhere(predictions != 5).flatten()
+        sample_idxs = np.intersect1d(cluster, miss_idxs)
+        if len(sample_idxs) < max_images:
+            remaining_idxs = np.setdiff1d(cluster, sample_idxs)
+            sample_idxs = np.concatenate((sample_idxs, np.random.choice(remaining_idxs, max_images - len(sample_idxs))))
+    else:
+        sample_idxs = cluster
+
+    # Get the number of rows and columns
+    if len(sample_idxs) < imgs_per_row:
+        cols = len(sample_idxs)
+        rows = 1
+    else:
+        cols = imgs_per_row
+        rows = math.ceil(len(sample_idxs) / imgs_per_row)
+
+    # Create the figure
+    fig, ax = plt.subplots(rows, cols, figsize=(cols * 8, rows * 8))
+
+    # Sort the images by label
+    if predictions is not None:
+        cluster_labels = [predictions[idx] for idx in sample_idxs]
+        sorted_cluster = sample_idxs[np.argsort(cluster_labels)]
+    else:
+        sorted_cluster = sample_idxs
+
+    # Assign each axis to one index
+    for axx, idx in zip(ax.flatten(), sorted_cluster):
+        axx.imshow(np.ma.masked_equal(images[idx], 0).filled(np.nan), cmap=cmap)
+        if overlays is not None:
+            axx.imshow(np.ma.masked_equal(overlays[idx], 0).filled(np.nan), cmap=overlay_cmap, alpha=overlay_alpha)
+        if predictions is not None:
+            axx.set_title(f'Prediction: {int(predictions[idx])}', size=60)
+
+    # remove the ticks and labels
+    for axx in ax.flatten():
+        axx.axis('off')
 
     return fig, ax

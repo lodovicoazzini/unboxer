@@ -65,22 +65,25 @@ def weight_by_values(df: pd.DataFrame, column: str, weights: str) -> pd.DataFram
 def get_common_clusters(clusters_list, mask=None):
     # Filter based on the mask
     if mask is not None:
-        # Find the indexes for the mask
-        miss_idxs = [idx for idxs in np.argwhere(mask) for idx in idxs]
-        # Filter the clusters for the ones containing at least one misclassified item
-        clusters_list = [
+        mask_idxs = np.argwhere(mask).flatten()
+        masked_clusters = [
             [
-                cluster
+                [
+                    element for element in cluster if element in mask_idxs
+                ]
                 for cluster in clusters
-                if len(set(cluster).intersection(set(miss_idxs))) > 0
             ]
             for clusters in clusters_list
         ]
-    # Flatten the list of clusters, remove singletons and black-hole
-    all_clusters = [cluster for clusters in clusters_list for cluster in clusters if
-                    len(cluster) > 1 and len(clusters) > 1]
+    else:
+        masked_clusters = clusters_list
+    # Flatten the list of clusters, remove singletons
+    masked_clusters = [
+        cluster for clusters in masked_clusters for cluster in clusters
+        if len(cluster) > 1
+    ]
     # Find all the combinations of clusters
-    combined = list(combinations(all_clusters, 2))
+    combined = list(combinations(masked_clusters, 2))
     # Find all the possible intersections between the clusters
     intersections = [set(lhs).intersection(set(rhs)) for lhs, rhs in combined]
     # Remove the intersections of one element
