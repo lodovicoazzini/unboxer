@@ -1,0 +1,8 @@
+build
+pypotrace.egg-info
+dist
+MANIFEST
+*.cpp
+*.c
+*.pyc
+/.eggs
