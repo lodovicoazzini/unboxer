@@ -8,7 +8,7 @@ __EXECUTION_DICT = {
     4: silhouette_by_perplexity
 }
 
-menu = """
+__MENU = """
 exit: terminate the program
 0: Execute all
 1: Distance matrix for the low-level approaches
@@ -18,17 +18,22 @@ exit: terminate the program
 
 Select one or more of the options separated by a space: """
 
+__INVALID_OPTION = lambda message: f'Invalid option [{choices_str}]'
+
 if __name__ == '__main__':
-    choices_str = input(menu)
+    choices_str = input(__MENU)
     while choices_str != 'exit':
-        choices = [int(choice) for choice in choices_str.split(' ')]
+        try:
+            choices = [int(choice) for choice in choices_str.split(' ')]
 
-        # Get the handler for the input
-        for choice in choices:
-            handler = __EXECUTION_DICT.get(choice)
-            if handler is not None:
-                handler()
-            else:
-                print(f'Invalid option [{choices_str}]')
+            # Get the handler for the input
+            for choice in choices:
+                handler = __EXECUTION_DICT.get(choice)
+                if handler is not None:
+                    handler()
+                else:
+                    print(__INVALID_OPTION(choices_str))
+        except ValueError:
+            print(__INVALID_OPTION(choices_str))
 
-        choices_str = input(menu)
+        choices_str = input(__MENU)
