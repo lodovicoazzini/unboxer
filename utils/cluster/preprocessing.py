@@ -5,6 +5,7 @@ import seaborn as sns
 import tensorflow as tf
 from scipy.ndimage import label
 
+from utils.general import show_progress
 from utils.image_similarity.intensity_based import euclidean_distance
 
 
@@ -21,6 +22,9 @@ def distance_matrix(heatmaps, dist_func=euclidean_distance, show_map=False, name
             lhs = heatmaps[row]
             rhs = heatmaps[col]
             dist_matrix[row][col] = dist_func(lhs, rhs)
+
+        show_progress(row, num_heatmaps - 1)
+    print()
     # complete the rest of the distance matrix by summing it to its transposed
     dist_matrix = dist_matrix + dist_matrix.T
 

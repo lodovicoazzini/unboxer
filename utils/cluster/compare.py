@@ -6,6 +6,7 @@ import pandas as pd
 from clusim.clustering import Clustering
 
 from utils.cluster.ClusteringMode import ClusteringMode
+from utils.general import show_progress
 
 
 def compare_approaches(
@@ -66,13 +67,7 @@ def compare_approaches(
 
             # Show the progress
             if verbose:
-                sys.stdout.write('\r')
-                progress = int((iteration + 1) / iterations * 100)
-                progress_bar_len = 20
-                progress_bar_filled = int(progress / 100 * progress_bar_len)
-                sys.stdout.write(
-                    f'[{progress_bar_filled * "="}{(progress_bar_len - progress_bar_filled) * " "}]\t{progress}%')
-                sys.stdout.flush()
+                show_progress(iteration, iterations)
         print()
     # save the results
     results_df = pd.DataFrame(results)

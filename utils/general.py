@@ -1,5 +1,6 @@
 import math
 import os
+import sys
 from itertools import combinations
 
 import matplotlib.pyplot as plt
@@ -19,6 +20,15 @@ def save_figure(fig: plt.Figure, path: str, dpi: int = 150, transparent=True):
 
     # save the figure
     fig.savefig(path, dpi=dpi, transparent=transparent, bbox_inches='tight')
+
+
+def show_progress(iteration, iterations, progress_bar_len=20):
+    sys.stdout.write('\r')
+    progress = int((iteration + 1) / iterations * 100)
+    progress_bar_filled = int(progress / 100 * progress_bar_len)
+    sys.stdout.write(
+        f'[{progress_bar_filled * "="}{(progress_bar_len - progress_bar_filled) * " "}]\t{progress}%')
+    sys.stdout.flush()
 
 
 def shorten_list(original: np.ndarray, size: int) -> np.ndarray:

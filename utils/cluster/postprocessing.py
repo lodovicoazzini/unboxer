@@ -3,7 +3,7 @@ from collections import Counter
 import numpy as np
 from clusim.clustering import Clustering
 
-from config_dirs import PREDICTIONS_PATH
+from config.config_dirs import PREDICTIONS_PATH
 from utils.dataset import get_train_test_data, get_data_masks
 
 

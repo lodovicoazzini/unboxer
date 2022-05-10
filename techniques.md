@@ -4,14 +4,15 @@ This document contains report useful information on the techniques used in the p
 
 | Technique | Resources |
 | --- | --- |
-| LRP | 
+| LRP |
 | LIME | [LIME paper resources](https://github.com/marcotcr/lime/tree/master/doc/notebooks)
 | SHAP | |
 | GRAD-CAM| [XPLIQUE](https://deel-ai.github.io/xplique/) |
 
 ## The Model
 
-The model used in this work is a Sequential model from Tensorflow. The model is subclassed so that it can be adapted to the LIME explainer by implementing the required method `predict_proba`.
+The model used in this work is a Sequential model from Tensorflow. The model is subclassed so that it can be adapted to
+the LIME explainer by implementing the required method `predict_proba`.
 
 ```python
 import tensorflow as tf
@@ -51,13 +52,15 @@ class DigitClassifier(Sequential):
 
 ## The Techniques
 
-The following is a list of the techniques with some information about how to use them for the particular case of MNIST digits classification.
+The following is a list of the techniques with some information about how to use them for the particular case of MNIST
+digits classification.
 
 ### LRP
 
 ### LIME
 
 LIME requires the images to be in rgb format. You can convert images from grayscale to rgb by using Tensorflow.
+
 ```python
 import tensorflow as tf
 
@@ -69,7 +72,7 @@ test_data_rgb = tf.image.grayscale_to_rgb(tf.expand_dims(test_data, -1))
 Once the data is in the correct format we can train a classifier.
 
 ```python
-from DigitClassifier import DigitClassifier
+from utils.DigitClassifier import DigitClassifier
 
 # Create an instance of the classifier and train it
 classifier = DigitClassifier()

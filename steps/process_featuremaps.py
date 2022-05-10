@@ -8,14 +8,14 @@ from keras.utils.np_utils import to_categorical
 from sklearn.manifold import TSNE
 
 from config import FEATUREMAPS_CLUSTERS_MODE, CLUSTERS_SORT_METRIC, MAX_SAMPLES, MAX_LABELS
-from config_dirs import CLASSIFIER_PATH
+from config.config_dirs import CLASSIFIER_PATH
 from utils.cluster.postprocessing import sorted_clusters
 from utils.cluster.preprocessing import extract_maps_clusters, distance_matrix
 from utils.cluster.visualize import visualize_clusters_projections, visualize_clusters_images
 from utils.dataset import get_train_test_data, get_data_masks
 from utils.general import save_figure
 
-PREDICTIONS_PATH = 'in/predictions.csv'
+PREDICTIONS_PATH = '../in/predictions.csv'
 BASE_DIR = f'out/featuremaps/{FEATUREMAPS_CLUSTERS_MODE.name}'
 
 if __name__ == '__main__':
