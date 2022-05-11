@@ -10,7 +10,6 @@ from sklearn.manifold import TSNE
 
 from config.config_dirs import MODEL, BEST_CONFIGURATIONS, PREDICTIONS, HEATMAPS_DATA_RAW, \
     HEATMAPS_DATA
-from config.config_general import CHOSEN_LABEL
 from config.config_heatmaps import HEATMAPS_PROCESS_MODE, EXPLAINERS, DIM_RED_TECHS, CLUS_TECH, ITERATIONS
 from steps import model
 from utils.cluster.compare import compare_approaches

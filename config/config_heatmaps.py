@@ -3,8 +3,9 @@ from sklearn.manifold import TSNE
 from xplique.attributions import DeconvNet, Occlusion, Saliency, GuidedBackprop, Lime, GradCAM, IntegratedGradients, \
     KernelShap, SmoothGrad, GradCAMPP, Rise
 
-from config.config_general import __batch_size
 from utils.cluster.ClusteringMode import LocalLatentMode
+
+__batch_size = 64
 
 HEATMAPS_PROCESS_MODE = LocalLatentMode
 EXPLAINERS = [

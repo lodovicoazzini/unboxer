@@ -1,19 +1,89 @@
-# Opening the Black Box
+# How to run the `unboxer`
 
-## Heatmap Clustering to Understand the Misbehaviours Exposed by Automatically Generated Test Inputs
+## Configure the tool
 
-Deep Neural Networks (DNNs) revolutionize the automated image classification field, demonstrating impressive performances on large benchmark datasets. DNNs can also be applied to other fields relevant to the research and the industry, such as natural language processing, human action recognition, and physics.
+The tool can be configured using the files:
 
-Despite the high performances of DNNs, they essentially act as black boxes. In fact, they have an intrinsic drawback as it is unclear how and why they arrived at a particular decision.  The lack of transparency of these models is a severe disadvantage, as it prevents human experts from verifying, interpreting, and understanding their reasoning.
+<dl>
+    <code>config/config_dirs.py</code>
+    <dd>
+This file defines the location of the inputs and the outputs of the tool.
+</dd>
+    <code>config/config_general.py</code>
+    <dd>
+Ths file defines configurations common to both the heatmaps and the featuremaps.
 
-DNNs are essentially acting as black boxes.
+<code>EXPECTED_LABEL</code>: The label to use to filter the data for the experiment.
 
-Explainable AI (XAI) techniques aim to explain DNN decisions so that they are interpretable by humans.
+<code>MAX_LABELS</code>, <code>MAX_SAMPLES</code>: Respectively the maximum number of rows and columns to use when
+exporting the sample images for the clusters.
 
-Heatmaps are a common approach adopted by XAI techniques in the image classification field. The idea is to capture and represent the importance of pixels in image predictions in an interpretable form. Layer-wise Relevance Propagation (LRP) is a widely used method to generate such heatmaps. LRP works by computing scores for image pixels, denoting the impact on the final decision.
+<code>CLUSTERS_SORT_METRIC</code>: The preference for the clusters when sampling them to show some of their images. If
+no sorting is provided, the tool draw a random sample.
 
-Feature maps are a novel approach to explain DNNs proposed in the Software Engineering literature. The feature map provides a human-interpretable picture of how different features affect the system behaviour and performance. This strategy requires identifying and quantifying the dimensions of the feature space for a given domain.
+<code>CLU_SIM</code>: The similarity metric to use when comparing different clusters.
+</dd>
+    <code>config/config_heatmaps.py</code>
+    <dd>
+This fle defines the configuration for the heatmaps.
 
-The thesis aims to tackle the current transparency issue of DNN systems, investigate the similarities and differences between heatmaps and feature maps, make them more interpretable, and consider possible integrations of the two.
+<code>HEATMAPS_PROCESS_MODE</code>: The processing mode to use when generating the
+heatmaps [`LocalLatentMode`, `GlobalLatentMode`].
 
-The work is composed of two steps. The first one involves applying clustering techniques to XAI heatmaps and feature maps, making them more interpretable and comparable. The second one is empirically comparing the obtained clusters. 
+<code>EXPLAINERS</code>: The list of explainers to use when generating the contributions.
+
+<code>DIM_RED_TECHS</code>: The dimensionality reduction techniques to use to project the contributions in the
+two-dimensional latent space. The tool will experiment with the different techniques and choose the best configuration
+according to the silhouette score of the corresponding clusters.
+
+<code>CLUS_TECH</code>: The clustering technique to use when grouping the contributions.
+
+<code>ITERATIONS</code>: The number of iterations to use when running the experiment.
+</dd>
+<code>config/config_featuremaps.py</code>
+<dd>
+This fle defines the configuration for the featuremaps.
+
+<code>NUM_CELLS</code>: The size of the featuremaps.
+
+<code>BITMAP_THRESHOLD</code>: <strong>COMPLETE</strong>
+
+<code>ORIENTATION_THRESHOLD</code>: <strong>COMPLETE</strong>
+
+<code>FEATUREMAPS_CLUSTERS_MODE</code>: The clustering technique to use on the featuremaps [`ORIGINAL`, `REDUCED`].
+</dd>
+</dl>
+
+## Generate the heatmaps
+
+You can run the following command to generate the heatmaps.
+
+```commandline
+python -m steps.process_featuremaps
+```
+
+The tool will experiment with the different explainers, find the best configuration for the dimensionality reduction,
+and export the data collected during the experiment.
+
+## Generate the featuremaps
+
+You can run the following command to generate the featuremaps.
+
+```commandline
+python -m steps.process_featuremaps
+```
+
+The tool will generate the featuremaps, and export the data collected during the experiment.
+
+## Export the insights
+
+You can run the following command to generate the insights about the data.
+
+```commandline
+python -m steps.insights.insights
+```
+
+**!!! IMPORTANT !!!**<br>
+**Remember to generate the heatmaps and the featuremaps before running this command.**
+
+The tool with prompt a menu with a set of options, and will guide you through the process.
