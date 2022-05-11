@@ -1,29 +1,39 @@
+import os.path
 import warnings
 
 import numpy as np
+import pandas as pd
 import tensorflow as tf
 from clusim.clustering import Clustering
 from clusim.sim import element_sim
 from keras.utils.np_utils import to_categorical
 from sklearn.manifold import TSNE
 
-from config import FEATUREMAPS_CLUSTERS_MODE, CLUSTERS_SORT_METRIC, MAX_SAMPLES, MAX_LABELS
-from config.config_dirs import CLASSIFIER_PATH
+import feature_map.mnist.feature_map as feature_map_generator
+from config.config_dirs import MODEL, PREDICTIONS, FEATUREMAPS_DATA_RAW, FEATUREMAPS_DATA
+from config.config_execution import FEATUREMAPS_CLUSTERS_MODE, CLUSTERS_SORT_METRIC, MAX_SAMPLES, MAX_LABELS
 from utils.cluster.postprocessing import sorted_clusters
 from utils.cluster.preprocessing import extract_maps_clusters, distance_matrix
 from utils.cluster.visualize import visualize_clusters_projections, visualize_clusters_images
 from utils.dataset import get_train_test_data, get_data_masks
 from utils.general import save_figure
 
-PREDICTIONS_PATH = '../in/predictions.csv'
 BASE_DIR = f'out/featuremaps/{FEATUREMAPS_CLUSTERS_MODE.name}'
 
-if __name__ == '__main__':
+
+def main():
     warnings.filterwarnings('ignore')
+
+    # Import the featuremaps data or generate it if not there
+    if os.path.exists(FEATUREMAPS_DATA_RAW):
+        featuremaps_df = pd.read_pickle(FEATUREMAPS_DATA_RAW)
+    else:
+        featuremaps_df = feature_map_generator.main()
 
     # Process the feature-maps and get the dataframe
     print('Extracting the clusters data from the feature-maps ...')
-    featuremaps_df = extract_maps_clusters()
+    featuremaps_df = extract_maps_clusters(featuremaps_df)
+    featuremaps_df.to_pickle(FEATUREMAPS_DATA)
 
     # Compute the distance matrix
     print('Computing the distance matrix ...')
@@ -36,7 +46,7 @@ if __name__ == '__main__':
         lambda row: f'{row["approach"]}({row["map_size"]})_{row["mode"]}',
         axis=1
     )
-    distance_matrix, fig, ax = distance_matrix(
+    dist_matrix, fig, ax = distance_matrix(
         featuremaps_clusters,
         lambda l, r: 1 - element_sim(l, r),
         show_map=True,
@@ -44,7 +54,6 @@ if __name__ == '__main__':
     )
     ax.set_title('Distance matrix for the feature combinations')
     save_figure(fig, f'{BASE_DIR}/distance_matrix')
-    print(distance_matrix)
     print()
 
     print('Getting ready to show the clusters projections ...')
@@ -56,9 +65,9 @@ if __name__ == '__main__':
         tf.image.rgb_to_grayscale(test_data).numpy()
     )
     # Load the model
-    classifier = tf.keras.models.load_model(CLASSIFIER_PATH)
+    classifier = tf.keras.models.load_model(MODEL)
     # Load the predictions
-    predictions = np.loadtxt(PREDICTIONS_PATH)
+    predictions = np.loadtxt(PREDICTIONS)
     predictions_cat = to_categorical(predictions, num_classes=len(set(train_labels)))
     # Get the masks to filter the data
     mask_miss, mask_label = get_data_masks(test_labels, predictions, label=5)
@@ -114,3 +123,9 @@ if __name__ == '__main__':
         )
         fig.suptitle(f'Misclassified classified items for {feature_combination}')
         save_figure(fig, f'{BASE_DIR}/misclassified_samples_{feature_combination}')
+
+    return featuremaps_df
+
+
+if __name__ == '__main__':
+    main()

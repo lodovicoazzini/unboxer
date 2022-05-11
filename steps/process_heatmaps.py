@@ -8,7 +8,7 @@ import tensorflow as tf
 from keras.utils.np_utils import to_categorical
 from sklearn.manifold import TSNE
 
-from config.config_dirs import CLASSIFIER_PATH, BEST_CONFIGURATIONS, PREDICTIONS_PATH, HEATMAPS_DATA_UNFILTERED, \
+from config.config_dirs import MODEL, BEST_CONFIGURATIONS, PREDICTIONS, HEATMAPS_DATA_RAW, \
     HEATMAPS_DATA
 from config.config_execution import HEATMAPS_PROCESS_MODE, EXPLAINERS, DIM_RED_TECHS, CLUS_TECH, ITERATIONS, \
     CHOSEN_LABEL
@@ -28,14 +28,14 @@ def main():
     (train_data, train_labels), (test_data, test_labels) = get_train_test_data(rgb=True, verbose=True)
     # Load the model
     print('Loading the model ...')
-    if os.path.exists(CLASSIFIER_PATH):
-        classifier = tf.keras.models.load_model(CLASSIFIER_PATH)
+    if os.path.exists(MODEL):
+        classifier = tf.keras.models.load_model(MODEL)
     else:
         classifier = model.create_model()
     # Load the predictions
     print('Loading the predictions ...')
-    if os.path.exists(PREDICTIONS_PATH):
-        predictions = np.loadtxt(PREDICTIONS_PATH)
+    if os.path.exists(PREDICTIONS):
+        predictions = np.loadtxt(PREDICTIONS)
     else:
         predictions = model.generate_predictions(classifier=classifier, test_data=test_data)
     # Convert the predictions to categorical
@@ -101,7 +101,7 @@ def main():
     # Extract the perplexity from the parameters
     df['perplexity'] = df['dim_red_techs_params'].apply(lambda params: float(params[-1]['perplexity']))
     # Save the overall data
-    df.to_pickle(HEATMAPS_DATA_UNFILTERED)
+    df.to_pickle(HEATMAPS_DATA_RAW)
 
     # Find the best configuration for each explainer
     weighted_df = weight_not_null(

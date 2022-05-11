@@ -4,7 +4,7 @@ from keras.utils.np_utils import to_categorical
 from tensorflow.keras import layers
 from tensorflow.keras.models import Sequential
 
-from config.config_dirs import CLASSIFIER_PATH, PREDICTIONS_PATH
+from config.config_dirs import MODEL, PREDICTIONS
 from utils.dataset import get_train_test_data
 
 
@@ -55,7 +55,7 @@ def create_model():
     print(f'Accuracy on test: {acc}')
 
     # Save the classifier
-    classifier.save(CLASSIFIER_PATH)
+    classifier.save(MODEL)
 
     return classifier
 
@@ -65,6 +65,6 @@ def generate_predictions(classifier, test_data):
     # Compute the predictions
     predictions = classifier.predict(test_data).argmax(axis=-1)
     # Save the predictions
-    np.savetxt(PREDICTIONS_PATH, predictions, delimiter=',')
+    np.savetxt(PREDICTIONS, predictions, delimiter=',')
 
     return predictions

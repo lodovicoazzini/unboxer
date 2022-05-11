@@ -10,11 +10,15 @@ from utils.cluster.postprocessing import get_frac_misses
 
 __batch_size = 64
 
-CHOSEN_LABEL = 5
-ITERATIONS = 20
+# General configuration
+EXPECTED_LABEL = 5
+IMG_SIZE = 28
+NUM_CLASSES = 10
 MAX_LABELS = 5
 MAX_SAMPLES = 5
 
+# Heatmaps configurations
+ITERATIONS = 20
 HEATMAPS_PROCESS_MODE = LocalLatentMode
 EXPLAINERS = [
     DeconvNet,
@@ -36,11 +40,15 @@ DIM_RED_TECHS = [
 CLUS_TECH = AffinityPropagation()
 CLUS_SIM = element_sim
 
-FEATUREMAPS_CLUSTERS_MODE = FeatureMapsClustersMode.ORIGINAL
-
 CLUSTERS_SORT_METRIC = lambda cluster: (
     -get_frac_misses(cluster)
     if get_frac_misses(cluster) != 1
     else 0,
     -len(cluster)
 )
+
+# featuremaps configurations
+NUM_CELLS = 10
+BITMAP_THRESHOLD = 0.5
+ORIENTATION_THRESHOLD = 0.
+FEATUREMAPS_CLUSTERS_MODE = FeatureMapsClustersMode.ORIGINAL

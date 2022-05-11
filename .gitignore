@@ -2,9 +2,9 @@
 .DS_Store
 __pycache__
 
-in/*
-!in/README.md
 logs/*
+logs/best_configs
 !logs/README.md
+
 out/*
 !out/README.md

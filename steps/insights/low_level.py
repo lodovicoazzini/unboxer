@@ -5,7 +5,7 @@ import tensorflow as tf
 from clusim.clustering import Clustering
 from matplotlib import pyplot as plt
 
-from config.config_dirs import HEATMAPS_DATA, HEATMAPS_DATA_UNFILTERED, PREDICTIONS_PATH
+from config.config_dirs import HEATMAPS_DATA, HEATMAPS_DATA_RAW, PREDICTIONS
 from config.config_execution import CLUS_SIM, CHOSEN_LABEL, CLUSTERS_SORT_METRIC, MAX_SAMPLES, MAX_LABELS
 from utils.cluster.postprocessing import sorted_clusters
 from utils.cluster.preprocessing import distance_matrix
@@ -35,7 +35,7 @@ def heatmaps_distance_matrix():
 def clusters_projections():
     # Read the data
     df = pd.read_pickle(HEATMAPS_DATA)
-    predictions = np.loadtxt(PREDICTIONS_PATH)
+    predictions = np.loadtxt(PREDICTIONS)
     _, (test_data, test_labels) = get_train_test_data(rgb=True, verbose=False)
     mask_miss, mask_label = get_data_masks(real=test_labels, predictions=predictions, label=CHOSEN_LABEL, verbose=False)
     # Get the mask for the misclassified items of the selected label
@@ -73,7 +73,7 @@ def clusters_projections():
 def clusters_images():
     # Read the data
     df = pd.read_pickle(HEATMAPS_DATA)
-    predictions = np.loadtxt(PREDICTIONS_PATH)
+    predictions = np.loadtxt(PREDICTIONS)
     (train_data, train_labels), (test_data, test_labels) = get_train_test_data(rgb=True, verbose=False)
     mask_miss, mask_label = get_data_masks(real=test_labels, predictions=predictions, label=CHOSEN_LABEL, verbose=False)
     # Get the mask for the misclassified items of the selected label
@@ -137,7 +137,7 @@ def clusters_images():
 
 def silhouette_by_perplexity():
     # Read the data
-    df = pd.read_pickle(HEATMAPS_DATA_UNFILTERED)
+    df = pd.read_pickle(HEATMAPS_DATA_RAW)
 
     print('Showing the distribution of the silhouette score by perplexity for the low-level approaches ...')
     # Iterate through the explainers

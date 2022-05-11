@@ -3,7 +3,7 @@ from collections import Counter
 import numpy as np
 from clusim.clustering import Clustering
 
-from config.config_dirs import PREDICTIONS_PATH
+from config.config_dirs import PREDICTIONS
 from utils.dataset import get_train_test_data, get_data_masks
 
 
@@ -14,7 +14,7 @@ def get_misses_count(cluster, predictions=None) -> float:
     # Get the indexes for the misclassified elements
     # Get the indexes of the misclassified elements
     if predictions is None:
-        predictions = np.loadtxt(PREDICTIONS_PATH)
+        predictions = np.loadtxt(PREDICTIONS)
     _, (test_data, test_labels) = get_train_test_data(rgb=True)
     mask_miss, mask_label = get_data_masks(test_labels, predictions, label=5)
     mask_miss_label = mask_miss[mask_label]
@@ -37,7 +37,7 @@ def get_frac_misses(cluster, predictions=None) -> float:
 def get_labels_purity(cluster, predictions=None) -> float:
     _, (test_data, test_labels) = get_train_test_data(rgb=True)
     if predictions is None:
-        predictions = np.loadtxt(PREDICTIONS_PATH)
+        predictions = np.loadtxt(PREDICTIONS)
 
     mask_miss, mask_label = get_data_masks(test_labels, predictions, label=5)
     mask_miss_label = mask_miss[mask_label]
