@@ -1,3 +1,5 @@
+from clusim.clusimelement import element_sim
+
 from utils.cluster.postprocessing import get_frac_misses
 
 __batch_size = 64
@@ -13,3 +15,4 @@ CLUSTERS_SORT_METRIC = lambda cluster: (
     else 0,
     -len(cluster)
 )
+CLUS_SIM = element_sim

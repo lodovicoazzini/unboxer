@@ -6,8 +6,7 @@ from clusim.clustering import Clustering
 from matplotlib import pyplot as plt
 
 from config.config_dirs import HEATMAPS_DATA, HEATMAPS_DATA_RAW, PREDICTIONS
-from config.config_general import EXPECTED_LABEL, CLUSTERS_SORT_METRIC, MAX_SAMPLES, MAX_LABELS
-from config.config_heatmaps import CLUS_SIM
+from config.config_general import EXPECTED_LABEL, CLUSTERS_SORT_METRIC, MAX_SAMPLES, MAX_LABELS, CLUS_SIM
 from utils.cluster.postprocessing import sorted_clusters
 from utils.cluster.preprocessing import distance_matrix
 from utils.cluster.sample import sample_most_popular
@@ -33,7 +32,7 @@ def heatmaps_distance_matrix():
     save_figure(fig, f'out/low_level/distance_matrix')
 
 
-def clusters_projections():
+def heatmaps_clusters_projections():
     # Read the data
     df = pd.read_pickle(HEATMAPS_DATA)
     predictions = np.loadtxt(PREDICTIONS)
@@ -48,6 +47,7 @@ def clusters_projections():
     # Iterate through the explainers
     print('Exporting the clusters projections ...')
     explainers = df.index.unique()
+    show_progress(0, len(explainers))
     for idx, explainer in enumerate(explainers):
         # Get the best configuration for the explainer
         pick_config = df.loc[explainer]
@@ -72,7 +72,7 @@ def clusters_projections():
     print()
 
 
-def clusters_images():
+def heatmaps_clusters_images():
     # Read the data
     df = pd.read_pickle(HEATMAPS_DATA)
     predictions = np.loadtxt(PREDICTIONS)
@@ -90,6 +90,7 @@ def clusters_images():
     df = sample_most_popular(df, group_by='explainer').set_index('explainer')
     print('Exporting the clusters sample images ...')
     explainers = df.index.unique()
+    show_progress(0, len(explainers))
     for idx, explainer in enumerate(explainers):
         # Get the best configuration for the explainer
         pick_config = df.loc[explainer]
@@ -138,13 +139,14 @@ def clusters_images():
     print()
 
 
-def silhouette_by_perplexity():
+def heatmaps_silhouette_by_perplexity():
     # Read the data
     df = pd.read_pickle(HEATMAPS_DATA_RAW)
 
     print('Showing the distribution of the silhouette score by perplexity for the low-level approaches ...')
     # Iterate through the explainers
     explainers = df['explainer'].unique()
+    show_progress(0, len(explainers))
     for idx, explainer in enumerate(explainers):
         # Filter the dataframe for the explainer
         explainer_df = df[df['explainer'] == explainer]

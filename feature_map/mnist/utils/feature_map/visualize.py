@@ -74,6 +74,6 @@ def visualize_map(features, samples):
         })
 
         map_size_str = f'{NUM_CELLS}x{NUM_CELLS}'
-        save_figure(fig, f'out/feature_maps/featuremap_{EXPECTED_LABEL}_{map_size_str}_{features_comb_str}')
+        save_figure(fig, f'out/featuremaps/featuremap_{EXPECTED_LABEL}_{map_size_str}_{features_comb_str}')
 
     return data

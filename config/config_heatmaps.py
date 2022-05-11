@@ -1,4 +1,3 @@
-from clusim.clusimelement import element_sim
 from sklearn.cluster import AffinityPropagation
 from sklearn.manifold import TSNE
 from xplique.attributions import DeconvNet, Occlusion, Saliency, GuidedBackprop, Lime, GradCAM, IntegratedGradients, \
@@ -27,4 +26,3 @@ DIM_RED_TECHS = [
 ]
 CLUS_TECH = AffinityPropagation()
 ITERATIONS = 20
-CLUS_SIM = element_sim

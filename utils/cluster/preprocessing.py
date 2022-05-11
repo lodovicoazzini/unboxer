@@ -19,6 +19,7 @@ def distance_matrix(heatmaps, dist_func=euclidean_distance, show_map=False, name
     num_heatmaps = len(heatmaps)
     dist_matrix = np.zeros(shape=(num_heatmaps, num_heatmaps))
     # compute the heatmaps distances above the diagonal
+    show_progress(0, num_heatmaps - 1)
     for row in range(0, num_heatmaps - 1):
         for col in range(row + 1, num_heatmaps):
             lhs = heatmaps[row]
