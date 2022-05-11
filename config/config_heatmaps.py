@@ -1,24 +1,12 @@
 from clusim.clusimelement import element_sim
 from sklearn.cluster import AffinityPropagation
 from sklearn.manifold import TSNE
-from xplique.attributions import GradCAM, IntegratedGradients, Rise, KernelShap, Lime, Occlusion, \
-    GuidedBackprop, GradCAMPP, SmoothGrad, DeconvNet, Saliency
+from xplique.attributions import DeconvNet, Occlusion, Saliency, GuidedBackprop, Lime, GradCAM, IntegratedGradients, \
+    KernelShap, SmoothGrad, GradCAMPP, Rise
 
+from config.config_general import __batch_size
 from utils.cluster.ClusteringMode import LocalLatentMode
-from utils.cluster.FeatureMapsClustersMode import FeatureMapsClustersMode
-from utils.cluster.postprocessing import get_frac_misses
 
-__batch_size = 64
-
-# General configuration
-EXPECTED_LABEL = 5
-IMG_SIZE = 28
-NUM_CLASSES = 10
-MAX_LABELS = 5
-MAX_SAMPLES = 5
-
-# Heatmaps configurations
-ITERATIONS = 20
 HEATMAPS_PROCESS_MODE = LocalLatentMode
 EXPLAINERS = [
     DeconvNet,
@@ -38,17 +26,5 @@ DIM_RED_TECHS = [
     for perplexity in range(1, 20, 2)
 ]
 CLUS_TECH = AffinityPropagation()
+ITERATIONS = 20
 CLUS_SIM = element_sim
-
-CLUSTERS_SORT_METRIC = lambda cluster: (
-    -get_frac_misses(cluster)
-    if get_frac_misses(cluster) != 1
-    else 0,
-    -len(cluster)
-)
-
-# featuremaps configurations
-NUM_CELLS = 10
-BITMAP_THRESHOLD = 0.5
-ORIENTATION_THRESHOLD = 0.
-FEATUREMAPS_CLUSTERS_MODE = FeatureMapsClustersMode.ORIGINAL

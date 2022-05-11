@@ -5,7 +5,7 @@ import seaborn as sns
 import tensorflow as tf
 from scipy.ndimage import label
 
-from config.config_execution import FEATUREMAPS_CLUSTERS_MODE
+from config.config_featuremaps import FEATUREMAPS_CLUSTERS_MODE
 from utils.cluster.FeatureMapsClustersMode import FeatureMapsClustersMode
 from utils.general import show_progress
 from utils.image_similarity.intensity_based import euclidean_distance

@@ -11,7 +11,8 @@ from sklearn.manifold import TSNE
 
 import feature_map.mnist.feature_map as feature_map_generator
 from config.config_dirs import MODEL, PREDICTIONS, FEATUREMAPS_DATA_RAW, FEATUREMAPS_DATA
-from config.config_execution import FEATUREMAPS_CLUSTERS_MODE, CLUSTERS_SORT_METRIC, MAX_SAMPLES, MAX_LABELS
+from config.config_featuremaps import FEATUREMAPS_CLUSTERS_MODE
+from config.config_general import CLUSTERS_SORT_METRIC, MAX_SAMPLES, MAX_LABELS
 from utils.cluster.postprocessing import sorted_clusters
 from utils.cluster.preprocessing import extract_maps_clusters, distance_matrix
 from utils.cluster.visualize import visualize_clusters_projections, visualize_clusters_images

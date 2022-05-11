@@ -6,7 +6,8 @@ from clusim.clustering import Clustering
 from matplotlib import pyplot as plt
 
 from config.config_dirs import HEATMAPS_DATA, HEATMAPS_DATA_RAW, PREDICTIONS
-from config.config_execution import CLUS_SIM, CHOSEN_LABEL, CLUSTERS_SORT_METRIC, MAX_SAMPLES, MAX_LABELS
+from config.config_general import CHOSEN_LABEL, CLUSTERS_SORT_METRIC, MAX_SAMPLES, MAX_LABELS
+from config.config_heatmaps import CLUS_SIM
 from utils.cluster.postprocessing import sorted_clusters
 from utils.cluster.preprocessing import distance_matrix
 from utils.cluster.sample import sample_most_popular

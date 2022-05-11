@@ -1,7 +1,7 @@
 import pandas as pd
 
 from config.config_dirs import FEATUREMAPS_META
-from config.config_execution import EXPECTED_LABEL
+from config.config_general import EXPECTED_LABEL
 from feature_map.mnist.feature_simulator import FeatureSimulator
 from feature_map.mnist.sample import Sample
 from feature_map.mnist.utils import vectorization_tools

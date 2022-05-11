@@ -1,6 +1,6 @@
 import numpy as np
 
-from config.config_execution import NUM_CELLS
+from config.config_featuremaps import NUM_CELLS
 from feature_map.mnist.feature_simulator import FeatureSimulator
 from feature_map.mnist.sample import Sample
 

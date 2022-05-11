@@ -6,7 +6,7 @@ from xml.etree import ElementTree as et
 import numpy as np
 from sklearn.linear_model import LinearRegression
 
-from config.config_execution import BITMAP_THRESHOLD, ORIENTATION_THRESHOLD
+from config.config_featuremaps import BITMAP_THRESHOLD, ORIENTATION_THRESHOLD
 
 NAMESPACE = '{http://www.w3.org/2000/svg}'
 

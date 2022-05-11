@@ -8,7 +8,7 @@ import numpy as np
 import pandas as pd
 
 # local imports
-from config.config_execution import IMG_SIZE
+from config.config_general import IMG_SIZE
 
 
 # from tensorflow import keras
