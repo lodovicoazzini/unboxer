@@ -6,7 +6,7 @@ from clusim.clustering import Clustering
 from matplotlib import pyplot as plt
 
 from config.config_dirs import HEATMAPS_DATA, HEATMAPS_DATA_RAW, PREDICTIONS
-from config.config_general import CHOSEN_LABEL, CLUSTERS_SORT_METRIC, MAX_SAMPLES, MAX_LABELS
+from config.config_general import EXPECTED_LABEL, CLUSTERS_SORT_METRIC, MAX_SAMPLES, MAX_LABELS
 from config.config_heatmaps import CLUS_SIM
 from utils.cluster.postprocessing import sorted_clusters
 from utils.cluster.preprocessing import distance_matrix
@@ -38,7 +38,8 @@ def clusters_projections():
     df = pd.read_pickle(HEATMAPS_DATA)
     predictions = np.loadtxt(PREDICTIONS)
     _, (test_data, test_labels) = get_train_test_data(rgb=True, verbose=False)
-    mask_miss, mask_label = get_data_masks(real=test_labels, predictions=predictions, label=CHOSEN_LABEL, verbose=False)
+    mask_miss, mask_label = get_data_masks(real=test_labels, predictions=predictions, label=EXPECTED_LABEL,
+                                           verbose=False)
     # Get the mask for the misclassified items of the selected label
     mask_miss_label = mask_miss[mask_label]
 
@@ -76,7 +77,8 @@ def clusters_images():
     df = pd.read_pickle(HEATMAPS_DATA)
     predictions = np.loadtxt(PREDICTIONS)
     (train_data, train_labels), (test_data, test_labels) = get_train_test_data(rgb=True, verbose=False)
-    mask_miss, mask_label = get_data_masks(real=test_labels, predictions=predictions, label=CHOSEN_LABEL, verbose=False)
+    mask_miss, mask_label = get_data_masks(real=test_labels, predictions=predictions, label=EXPECTED_LABEL,
+                                           verbose=False)
     # Get the mask for the misclassified items of the selected label
     mask_miss_label = mask_miss[mask_label]
     train_data_gs, test_data_gs = (
