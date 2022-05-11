@@ -8,3 +8,5 @@ logs/best_configs
 
 out/*
 !out/README.md
+
+playground/
