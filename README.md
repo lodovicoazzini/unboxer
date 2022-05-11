@@ -1,6 +1,6 @@
-# How to run the `unboxer`
+# 🥡 How to run the `unboxer` 🥡
 
-## Configure the tool
+## ⚙️ Configure the tool ⚙️
 
 The tool can be configured using the files:
 
@@ -54,7 +54,7 @@ This fle defines the configuration for the featuremaps.
 </dd>
 </dl>
 
-## Generate the heatmaps
+## 🥵 Generate the heatmaps 🥵
 
 You can run the following command to generate the heatmaps.
 
@@ -65,7 +65,7 @@ python -m steps.process_featuremaps
 The tool will experiment with the different explainers, find the best configuration for the dimensionality reduction,
 and export the data collected during the experiment.
 
-## Generate the featuremaps
+## 🗺 Generate the featuremaps 🗺
 
 You can run the following command to generate the featuremaps.
 
@@ -75,7 +75,7 @@ python -m steps.process_featuremaps
 
 The tool will generate the featuremaps, and export the data collected during the experiment.
 
-## Export the insights
+## 📊 Export the insights 📊
 
 You can run the following command to generate the insights about the data.
 
