@@ -9,3 +9,6 @@ HEATMAPS_DATA = 'logs/heatmaps_data'
 FEATUREMAPS_META = 'logs/featuremaps_meta'
 FEATUREMAPS_DATA_RAW = 'logs/featuremaps_data_raw'
 FEATUREMAPS_DATA = 'logs/featuremaps_data'
+
+MERGED_DATA = 'logs/merged_data'
+MERGED_DATA_SAMPLED = 'logs/merged_data_sampled'
