@@ -1,17 +1,16 @@
 import numpy as np
 import pandas as pd
 import seaborn as sns
-import tensorflow as tf
 from clusim.clustering import Clustering
 from matplotlib import pyplot as plt
 
-from config.config_dirs import HEATMAPS_DATA, HEATMAPS_DATA_RAW, PREDICTIONS
-from config.config_general import EXPECTED_LABEL, CLUSTERS_SORT_METRIC, MAX_SAMPLES, MAX_LABELS, CLUS_SIM
+from config.config_dirs import HEATMAPS_DATA, HEATMAPS_DATA_RAW
+from config.config_general import CLUSTERS_SORT_METRIC, MAX_SAMPLES, MAX_LABELS, CLUS_SIM
+from utils import globals
 from utils.cluster.postprocessing import sorted_clusters
 from utils.cluster.preprocessing import distance_matrix
 from utils.cluster.sample import sample_most_popular
 from utils.cluster.visualize import visualize_clusters_projections, visualize_clusters_images
-from utils.dataset import get_train_test_data, get_data_masks
 from utils.general import save_figure, show_progress
 
 
@@ -35,12 +34,6 @@ def heatmaps_distance_matrix():
 def heatmaps_clusters_projections():
     # Read the data
     df = pd.read_pickle(HEATMAPS_DATA)
-    predictions = np.loadtxt(PREDICTIONS)
-    _, (test_data, test_labels) = get_train_test_data(rgb=True, verbose=False)
-    mask_miss, mask_label = get_data_masks(real=test_labels, predictions=predictions, label=EXPECTED_LABEL,
-                                           verbose=False)
-    # Get the mask for the misclassified items of the selected label
-    mask_miss_label = mask_miss[mask_label]
 
     # Get the most popular configurations
     df = sample_most_popular(df, group_by='explainer').set_index('explainer')
@@ -63,7 +56,7 @@ def heatmaps_clusters_projections():
         fig, ax = visualize_clusters_projections(
             projections=projections,
             clusters=clusters_membership,
-            mask=mask_miss_label
+            mask=globals.mask_miss_label
         )
         ax.set_title(f'{explainer} clusters projections')
         save_figure(fig, f'out/low_level/{explainer}/clusters_projections')
@@ -75,16 +68,6 @@ def heatmaps_clusters_projections():
 def heatmaps_clusters_images():
     # Read the data
     df = pd.read_pickle(HEATMAPS_DATA)
-    predictions = np.loadtxt(PREDICTIONS)
-    (train_data, train_labels), (test_data, test_labels) = get_train_test_data(rgb=True, verbose=False)
-    mask_miss, mask_label = get_data_masks(real=test_labels, predictions=predictions, label=EXPECTED_LABEL,
-                                           verbose=False)
-    # Get the mask for the misclassified items of the selected label
-    mask_miss_label = mask_miss[mask_label]
-    train_data_gs, test_data_gs = (
-        tf.image.rgb_to_grayscale(train_data).numpy(),
-        tf.image.rgb_to_grayscale(test_data).numpy()
-    )
 
     # Get the most popular configurations
     df = sample_most_popular(df, group_by='explainer').set_index('explainer')
@@ -102,7 +85,7 @@ def heatmaps_clusters_images():
         # Convert the clusters to membership list
         clusters_membership = np.array(Clustering().from_cluster_list(clusters).to_membership_list())
         # Get the mask for the clusters containing misclassified elements of the selected label
-        mask_contains_miss_label = np.isin(clusters_membership, np.unique(clusters_membership[mask_miss_label]))
+        mask_contains_miss_label = np.isin(clusters_membership, np.unique(clusters_membership[globals.mask_miss_label]))
 
         # Sample some clusters labels containing misclassified items
         clusters_labels = np.unique(clusters_membership[mask_contains_miss_label])
@@ -113,22 +96,24 @@ def heatmaps_clusters_images():
             clusters = sorted_clusters(clusters, metric=CLUSTERS_SORT_METRIC)
             clusters_membership = np.array(Clustering().from_cluster_list(clusters).to_membership_list())
         # Show some correctly classified images for clusters containing also misclassified images
+        correct_sample_mask = mask_contains_miss_label & ~globals.mask_miss_label & sample_mask
         fig, _ = visualize_clusters_images(
-            clusters=clusters_membership[mask_contains_miss_label & ~mask_miss_label & sample_mask],
-            images=test_data_gs[mask_label][mask_contains_miss_label & ~mask_miss_label & sample_mask],
-            predictions=predictions[mask_label][mask_contains_miss_label & ~mask_miss_label & sample_mask],
-            overlay=contributions[mask_contains_miss_label & ~mask_miss_label & sample_mask],
+            clusters=clusters_membership[correct_sample_mask],
+            images=globals.test_data_gs[globals.mask_label][correct_sample_mask],
+            predictions=globals.predictions[globals.mask_label][correct_sample_mask],
+            overlay=contributions[correct_sample_mask],
             max_samples=MAX_SAMPLES,
             max_labels=MAX_LABELS,
             cmap='gray_r'
         )
         save_figure(fig, f'out/low_level/{explainer}/clusters_correct_images')
         # Show some incorrectly classified images for clusters containing also misclassified images
+        misses_sample_mask = mask_contains_miss_label & globals.mask_miss_label & sample_mask
         fig, _ = visualize_clusters_images(
-            clusters=clusters_membership[mask_contains_miss_label & mask_miss_label & sample_mask],
-            images=test_data_gs[mask_label][mask_contains_miss_label & mask_miss_label & sample_mask],
-            predictions=predictions[mask_label][mask_contains_miss_label & mask_miss_label & sample_mask],
-            overlay=contributions[mask_contains_miss_label & mask_miss_label & sample_mask],
+            clusters=clusters_membership[misses_sample_mask],
+            images=globals.test_data_gs[globals.mask_label][misses_sample_mask],
+            predictions=globals.predictions[globals.mask_label][misses_sample_mask],
+            overlay=contributions[misses_sample_mask],
             max_samples=MAX_SAMPLES,
             max_labels=MAX_LABELS,
             cmap='gray_r'

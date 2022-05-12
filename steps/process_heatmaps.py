@@ -2,18 +2,14 @@ import os.path
 import warnings
 from itertools import product
 
-import numpy as np
 import pandas as pd
-import tensorflow as tf
-from keras.utils.np_utils import to_categorical
 from sklearn.manifold import TSNE
 
-from config.config_dirs import MODEL, BEST_CONFIGURATIONS, PREDICTIONS, HEATMAPS_DATA_RAW, \
+from config.config_dirs import BEST_CONFIGURATIONS, HEATMAPS_DATA_RAW, \
     HEATMAPS_DATA
 from config.config_heatmaps import HEATMAPS_PROCESS_MODE, EXPLAINERS, DIM_RED_TECHS, CLUS_TECH, ITERATIONS
-from steps import model
+from utils import globals
 from utils.cluster.compare import compare_approaches
-from utils.dataset import get_train_test_data, get_data_masks
 from utils.general import weight_not_null
 
 BASE_DIR = f'../out/heatmaps'
@@ -22,26 +18,6 @@ BASE_DIR = f'../out/heatmaps'
 def main():
     warnings.filterwarnings('ignore')
 
-    # Get the data
-    print('Importing the data ...')
-    (train_data, train_labels), (test_data, test_labels) = get_train_test_data(rgb=True, verbose=True)
-    # Load the model
-    print('Loading the model ...')
-    if os.path.exists(MODEL):
-        classifier = tf.keras.models.load_model(MODEL)
-    else:
-        classifier = model.create_model()
-    # Load the predictions
-    print('Loading the predictions ...')
-    if os.path.exists(PREDICTIONS):
-        predictions = np.loadtxt(PREDICTIONS)
-    else:
-        predictions = model.generate_predictions(classifier=classifier, test_data=test_data)
-    # Convert the predictions to categorical
-    predictions_cat = to_categorical(predictions, num_classes=len(set(train_labels)))
-    # Get the masks to filter the data
-    mask_miss, mask_label = get_data_masks(real=test_labels, predictions=predictions, label=CHOSEN_LABEL, verbose=True)
-
     # Collect the approaches to use
     print('Collecting the approaches to use ...')
     if not os.path.exists(BEST_CONFIGURATIONS):
@@ -49,8 +25,8 @@ def main():
         print('Finding the best configuration for each approach')
         approaches = [
             HEATMAPS_PROCESS_MODE(
-                mask=mask_label,
-                explainer=explainer(classifier),
+                mask=globals.mask_label,
+                explainer=explainer(globals.classifier),
                 dim_red_techs=dim_red_techs,
                 clus_tech=CLUS_TECH
             )
@@ -65,11 +41,11 @@ def main():
         for explainer in EXPLAINERS:
             try:
                 # Find the best configuration to use
-                best_config = best_configs.loc[explainer(classifier).__class__.__name__]
+                best_config = best_configs.loc[explainer(globals.classifier).__class__.__name__]
                 approaches.append(
                     HEATMAPS_PROCESS_MODE(
-                        mask=mask_label,
-                        explainer=explainer(classifier),
+                        mask=globals.mask_label,
+                        explainer=explainer(globals.classifier),
                         dim_red_techs=[TSNE(perplexity=best_config['perplexity'])],
                         clus_tech=CLUS_TECH
                     )
@@ -78,8 +54,8 @@ def main():
                 # No best configuration for the explainer
                 for approach in [
                     HEATMAPS_PROCESS_MODE(
-                        mask=mask_label,
-                        explainer=explainer(classifier),
+                        mask=globals.mask_label,
+                        explainer=explainer(globals.classifier),
                         dim_red_techs=dim_red_techs,
                         clus_tech=CLUS_TECH
                     )
@@ -92,8 +68,8 @@ def main():
     print('Collecting the data for the approaches ...')
     df = compare_approaches(
         approaches=approaches,
-        data=test_data,
-        predictions=predictions_cat,
+        data=globals.test_data,
+        predictions=globals.predictions_cat,
         iterations=ITERATIONS,
         verbose=True
     )
