@@ -4,7 +4,6 @@ from keras.utils.np_utils import to_categorical
 
 from config.config_dirs import MODEL, PREDICTIONS
 from config.config_general import EXPECTED_LABEL
-from steps import model
 from utils.dataset import get_train_test_data, get_data_masks
 
 print('This should happen only once')
