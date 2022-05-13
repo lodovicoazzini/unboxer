@@ -21,9 +21,9 @@ EXPLAINERS = [
     GradCAMPP,
     lambda classifier: Rise(classifier, nb_samples=4000, batch_size=__batch_size)
 ]
-DIM_RED_TECHS = [
+DIMENSIONALITY_REDUCTION_TECHNIQUES = [
     [TSNE(perplexity=perplexity)]
     for perplexity in range(1, 20, 2)
 ]
-CLUS_TECH = AffinityPropagation()
+CLUSTERING_TECHNIQUE = AffinityPropagation()
 ITERATIONS = 20

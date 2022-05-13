@@ -31,6 +31,11 @@ def show_progress(iteration, iterations, progress_bar_len=20):
     sys.stdout.flush()
 
 
+def echo_progress_message(iteration: int, iterations: int, message: str) -> None:
+    sys.stdout.write('\r')
+    sys.stdout.write(f'{iteration + 1}/{iterations} - {message}\n')
+
+
 def shorten_list(original: np.ndarray, size: int) -> np.ndarray:
     # compute the size of the window for the averaged elements
     window_size = math.ceil(len(original) / size)
@@ -45,20 +50,6 @@ def weight_values(values: np.array, weights: np.array) -> np.array:
     zipped = np.column_stack((values, weights))
     weighted = np.array([value * math.log((math.e - 1) * weight / max_weight + 1) for value, weight in zipped])
     return weighted
-
-
-def weight_not_null(df: pd.DataFrame, group_by, agg_column: str, metric='mean') -> pd.DataFrame:
-    """
-    Weighting a column metric based on the number of non-null entries in the column.
-    The weight is rages between [0, 1] and corresponds to the function ln( (e-1) * not_none/max_not_none + 1).
-    """
-    aggregated = df.groupby(group_by)[agg_column].agg(val=metric, not_none='count')
-    max_not_none = aggregated['not_none'].max()
-    aggregated['weighted_val'] = aggregated.apply(
-        lambda row: row['val'] * math.log((math.e - 1) * row['not_none'] / max_not_none + 1),
-        axis=1
-    )
-    return aggregated
 
 
 def weight_by_values(df: pd.DataFrame, column: str, weights: str) -> pd.DataFrame:

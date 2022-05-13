@@ -70,7 +70,7 @@ def heatmaps_clusters_images():
     df = pd.read_pickle(HEATMAPS_DATA)
 
     # Get the most popular configurations
-    df = sample_most_popular(df, group_by='explainer').set_index('explainer')
+    df = sample_most_popular(df)
     print('Exporting the clusters sample images ...')
     explainers = df.index.unique()
     show_progress(0, len(explainers))

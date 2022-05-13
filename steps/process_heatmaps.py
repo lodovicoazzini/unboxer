@@ -3,14 +3,14 @@ import warnings
 from itertools import product
 
 import pandas as pd
-from sklearn.manifold import TSNE
 
 from config.config_dirs import BEST_CONFIGURATIONS, HEATMAPS_DATA_RAW, \
     HEATMAPS_DATA
-from config.config_heatmaps import HEATMAPS_PROCESS_MODE, EXPLAINERS, DIM_RED_TECHS, CLUS_TECH, ITERATIONS
+from config.config_heatmaps import HEATMAPS_PROCESS_MODE, EXPLAINERS, DIMENSIONALITY_REDUCTION_TECHNIQUES, \
+    CLUSTERING_TECHNIQUE, ITERATIONS
 from utils import globals
 from utils.cluster.compare import compare_approaches
-from utils.general import weight_not_null
+from utils.cluster.sample import sample_highest_score
 
 BASE_DIR = f'../out/heatmaps'
 
@@ -19,35 +19,33 @@ def main():
     warnings.filterwarnings('ignore')
 
     # Collect the approaches to use
-    print('Collecting the approaches to use ...')
+    print('Collecting the approaches ...')
     if not os.path.exists(BEST_CONFIGURATIONS):
-        # No best configuration stored
-        print('Finding the best configuration for each approach')
         approaches = [
             HEATMAPS_PROCESS_MODE(
                 mask=globals.mask_label,
                 explainer=explainer(globals.classifier),
-                dim_red_techs=dim_red_techs,
-                clus_tech=CLUS_TECH
+                dim_red_techs=dimensionality_reduction_technique,
+                clus_tech=CLUSTERING_TECHNIQUE
             )
-            for explainer, dim_red_techs in product(EXPLAINERS, DIM_RED_TECHS)
+            for explainer, dimensionality_reduction_technique
+            in product(EXPLAINERS, DIMENSIONALITY_REDUCTION_TECHNIQUES)
         ]
     else:
         # Read the data about the best configurations
-        best_configs = pd.read_csv(BEST_CONFIGURATIONS)
-        best_configs = best_configs.set_index('explainer')
+        best_configurations = pd.read_csv(BEST_CONFIGURATIONS).set_index('approach')
         # Find the best settings for each approach
         approaches = []
         for explainer in EXPLAINERS:
             try:
                 # Find the best configuration to use
-                best_config = best_configs.loc[explainer(globals.classifier).__class__.__name__]
+                best_config = best_configurations.loc[explainer(globals.classifier).__class__.__name__]
                 approaches.append(
                     HEATMAPS_PROCESS_MODE(
                         mask=globals.mask_label,
                         explainer=explainer(globals.classifier),
-                        dim_red_techs=[TSNE(perplexity=best_config['perplexity'])],
-                        clus_tech=CLUS_TECH
+                        dim_red_techs=best_config['dimensionality_reduction_techniques'],
+                        clus_tech=CLUSTERING_TECHNIQUE
                     )
                 )
             except KeyError:
@@ -57,49 +55,44 @@ def main():
                         mask=globals.mask_label,
                         explainer=explainer(globals.classifier),
                         dim_red_techs=dim_red_techs,
-                        clus_tech=CLUS_TECH
+                        clus_tech=CLUSTERING_TECHNIQUE
                     )
-                    for explainer, dim_red_techs in product([explainer], DIM_RED_TECHS)
+                    for explainer, dim_red_techs in product([explainer], DIMENSIONALITY_REDUCTION_TECHNIQUES)
                 ]:
                     approaches.append(approach)
 
     # Collect the data for the approaches
-
     print('Collecting the data for the approaches ...')
-    df = compare_approaches(
+    df_raw = compare_approaches(
         approaches=approaches,
-        data=globals.test_data,
-        predictions=globals.predictions_cat,
         iterations=ITERATIONS,
+        get_info=lambda app: app.get_dimensionality_reduction_techniques()[-1].get_params()['perplexity'],
         verbose=True
     )
-    # Extract the perplexity from the parameters
-    df['perplexity'] = df['dim_red_techs_params'].apply(lambda params: float(params[-1]['perplexity']))
-    # Save the overall data
-    df.to_pickle(HEATMAPS_DATA_RAW)
+    # Export the raw data
+    df_raw.to_pickle(HEATMAPS_DATA_RAW)
 
     # Find the best configuration for each explainer
-    weighted_df = weight_not_null(
-        df,
-        group_by=['explainer', 'perplexity'],
-        agg_column='silhouette'
-    ).reset_index(level='perplexity', drop=False)
-    weighted_df['rank'] = weighted_df.groupby('explainer')['weighted_val'].rank('dense', ascending=False)
-    best_configs_df = weighted_df[weighted_df['rank'] == 1]
-    best_config_combs = list(
-        best_configs_df.reset_index()[['explainer', 'perplexity']].itertuples(index=False, name=None)
+    df_sampled = sample_highest_score(df_raw)
+    best_configurations_tuples = list(
+        df_sampled.reset_index()[['approach', 'dimensionality_reduction_techniques']].itertuples(index=False, name=None)
     )
-    # Filter the dataset for the entries corresponding to the best configuration for each explainer
-    filtered_df = df[df[['explainer', 'perplexity']].apply(tuple, axis=1).isin(best_config_combs)]
-    filtered_df = filtered_df[~filtered_df['silhouette'].isna()]
-    # Save the data for the chosen configurations
-    filtered_df.to_pickle(HEATMAPS_DATA)
+    # Filter the dataset for the entries corresponding to the best configuration
+    df_sampled = df_raw[df_raw[
+        ['approach', 'dimensionality_reduction_techniques']].apply(tuple, axis=1).isin(best_configurations_tuples)
+    ]
+    # Remove the rows where the score is none -> black hole cluster
+    df_sampled = df_sampled.dropna(subset=['score'])
+    # Export the sampled data
+    df_sampled.to_pickle(HEATMAPS_DATA)
 
-    # Save the best configurations
-    best_configs_df = filtered_df[['explainer', 'perplexity']].groupby('explainer').min().reset_index(drop=False)
+    # Export the best configurations
+    best_configs_df = df_sampled[
+        ['approach', 'dimensionality_reduction_techniques']
+    ].groupby('approach').first().reset_index(drop=False)
     best_configs_df.to_csv(BEST_CONFIGURATIONS, index=False)
 
-    return filtered_df, df
+    return df_sampled
 
 
 if __name__ == '__main__':
