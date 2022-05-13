@@ -3,10 +3,9 @@ import os.path
 import numpy as np
 import pandas as pd
 
-from config.config_dirs import FEATUREMAPS_DATA, HEATMAPS_DATA, PREDICTIONS, MERGED_DATA, MERGED_DATA_SAMPLED
-from config.config_general import EXPECTED_LABEL
+from config.config_dirs import FEATUREMAPS_DATA, HEATMAPS_DATA, MERGED_DATA, MERGED_DATA_SAMPLED
+from utils import globals
 from utils.cluster.postprocessing import get_popularity_score
-from utils.dataset import get_train_test_data, get_data_masks
 
 
 def preprocess_featuremaps_data():
@@ -45,11 +44,7 @@ def preprocess_data():
     # Read all the needed data
     featuremaps_data = preprocess_featuremaps_data()
     heatmaps_data = preprocess_heatmaps_data()
-    _, (test_data, test_labels) = get_train_test_data(rgb=True)
-    predictions = np.loadtxt(PREDICTIONS)
-    mask_miss, mask_label = get_data_masks(test_labels, predictions, label=EXPECTED_LABEL)
-    mask_miss_label = mask_miss[mask_label]
-    misclassified_idxs = np.argwhere(mask_miss_label)
+    misclassified_idxs = np.argwhere(globals.mask_miss_label)
 
     # Merge the data for the featuremaps and the heatmaps
     merged = pd.concat([featuremaps_data, heatmaps_data]).reset_index(drop=True)

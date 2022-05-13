@@ -5,7 +5,9 @@ from scipy.stats import shapiro, ttest_ind, mannwhitneyu
 
 def compare_distributions(lhs, rhs):
     # Check if the two distributions are normal
-    if shapiro(lhs)[1] < .05 and shapiro(rhs)[1] < .05:
+    _, p_val_lhs = shapiro(lhs)
+    _, p_val_rhs = shapiro(rhs)
+    if p_val_lhs < .05 and p_val_rhs < .05:
         # Normal distributions
         statistic, p_value = ttest_ind(lhs, rhs)
         eff_size = compute_effsize(lhs, rhs, eftype='cohen')

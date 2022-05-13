@@ -3,15 +3,13 @@ import sys
 
 import numpy as np
 import pandas as pd
-import tensorflow as tf
 from matplotlib import pyplot as plt
 
-from config.config_dirs import MERGED_DATA_SAMPLED, PREDICTIONS
-from config.config_general import EXPECTED_LABEL
+from config.config_dirs import MERGED_DATA_SAMPLED
 from steps.human_evaluation.helpers import sample_clusters
+from utils import globals
 from utils.cluster.postprocessing import get_misses_count, get_labels_purity
 from utils.cluster.visualize import visualize_cluster_images
-from utils.dataset import get_train_test_data, get_data_masks
 from utils.general import get_balanced_samples, save_figure, show_progress
 
 
@@ -20,10 +18,6 @@ def export_clusters_sample_images():
         df = pd.read_pickle(MERGED_DATA_SAMPLED)
     else:
         df = sample_clusters()
-
-    _, (test_data, test_labels) = get_train_test_data(rgb=True)
-    predictions = np.loadtxt(PREDICTIONS)
-    mask_miss, mask_label = get_data_masks(test_labels, predictions, label=EXPECTED_LABEL)
 
     # Iterate through the approaches
     df = df.set_index('approach')
@@ -41,9 +35,9 @@ def export_clusters_sample_images():
             # Create the numpy array for the contributions or set it to None if no contributions
             contributions = None if type(contributions) == float else np.array(contributions, dtype=float)
             # Find the count of misclassified entries in each cluster
-            counts_misses = np.vectorize(lambda cl: get_misses_count(cl, predictions=predictions))(clusters)
+            counts_misses = np.vectorize(lambda cl: get_misses_count(cl, predictions=globals.predictions))(clusters)
             # Find the purity and impurity of each cluster
-            purities = np.vectorize(lambda cl: get_labels_purity(cl, predictions=predictions))(clusters)
+            purities = np.vectorize(lambda cl: get_labels_purity(cl, predictions=globals.predictions))(clusters)
             # Weight the purity and impurity based on the count of misclassified elements in log scale
             counts_misses_log = np.vectorize(lambda val: 0 if val == 0 else np.log(val))(counts_misses)
             # Get the pure and impure sample
@@ -54,9 +48,9 @@ def export_clusters_sample_images():
             for idx, cluster in enumerate(all_samples):
                 fig, ax = visualize_cluster_images(
                     np.array(cluster),
-                    images=tf.image.rgb_to_grayscale(test_data[mask_label]).numpy(),
+                    images=globals.test_data_gs[globals.mask_label],
                     overlays=contributions,
-                    predictions=predictions[mask_label],
+                    predictions=globals.predictions[globals.mask_label],
                 )
                 plt.close(fig)
 
