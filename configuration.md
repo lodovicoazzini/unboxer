@@ -7,19 +7,28 @@ The tool can be configured using the files:
     <dd>
 This file defines the location of the inputs and the outputs of the tool.
 </dd>
-    <code>config/config_general.py</code>
+    <code>config/config_const.py</code>
     <dd>
-Ths file defines configurations common to both the heatmaps and the featuremaps.
+Ths file defines configurations for some constants used by the tool.
 
 <code>EXPECTED_LABEL</code>: The label to use to filter the data for the experiment.
 
 <code>MAX_LABELS</code>, <code>MAX_SAMPLES</code>: Respectively the maximum number of rows and columns to use when
 exporting the sample images for the clusters.
 
+<code>IMG_SIZE</code>: The size of the images in the dataset.
+
+<code>NUM_CLASSES</code>: The number of classes for the data labels.
+
+</dd>
+    <code>config/config_general.py</code>
+    <dd>
+Ths file defines configurations common to both the heatmaps and the featuremaps.
+
 <code>CLUSTERS_SORT_METRIC</code>: The preference for the clusters when sampling them to show some of their images. If
 no sorting is provided, the tool draw a random sample.
 
-<code>CLU_SIM</code>: The similarity metric to use when comparing different clusters.
+<code>CLUSTER_SIMILARITY_METRIC</code>: The similarity metric to use when comparing different clusters.
 </dd>
     <code>config/config_heatmaps.py</code>
     <dd>
@@ -30,11 +39,11 @@ heatmaps [`LocalLatentMode`, `GlobalLatentMode`].
 
 <code>EXPLAINERS</code>: The list of explainers to use when generating the contributions.
 
-<code>DIM_RED_TECHS</code>: The dimensionality reduction techniques to use to project the contributions in the
-two-dimensional latent space. The tool will experiment with the different techniques and choose the best configuration
-according to the silhouette score of the corresponding clusters.
+<code>DIMENSIONALITY_REDUCTION_TECHNIQUES</code>: The dimensionality reduction techniques to use to project the
+contributions in the two-dimensional latent space. The tool will experiment with the different techniques and choose the
+best configuration according to the silhouette score of the corresponding clusters.
 
-<code>CLUS_TECH</code>: The clustering technique to use when grouping the contributions.
+<code>CLUSTERING_TECHNIQUE</code>: The clustering technique to use when grouping the contributions.
 
 <code>ITERATIONS</code>: The number of iterations to use when running the experiment.
 </dd>
