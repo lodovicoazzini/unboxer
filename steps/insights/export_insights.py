@@ -6,10 +6,9 @@ __EXECUTION_DICT = {
     1: low_level.heatmaps_distance_matrix,
     2: low_level.heatmaps_clusters_projections,
     3: low_level.heatmaps_clusters_images,
-    4: low_level.heatmaps_silhouette_by_perplexity,
-    5: high_level.featuremaps_distance_matrix,
-    6: high_level.featuremaps_clusters_projections,
-    7: high_level.featuremaps_clusters_images
+    4: high_level.featuremaps_distance_matrix,
+    5: high_level.featuremaps_clusters_projections,
+    6: high_level.featuremaps_clusters_images
 }
 
 __MENU = """
@@ -18,18 +17,19 @@ exit: terminate the program
 
 1: Distance matrix for the heatmaps clusters
 2: Clusters projections for the heatmaps clusters
-3: Sample cluster images for the heatmaps clusters
-4: Silhouette distribution by perplexity for the heatmaps approaches
+3: Sample clusters images for the heatmaps clusters
 
-5: Distance matrix for the featuremaps clusters
-6: Clusters projections for the featuremaps clusters
-7: Sample cluster images for the featuremaps clusters
+4: Distance matrix for the featuremaps clusters
+5: Clusters projections for the featuremaps clusters
+6: Sample clusters images for the featuremaps clusters
 
 Select one or more of the options separated by a space: """
 
 __INVALID_OPTION = lambda message: f'Invalid option [{choices_str}]'
 
 if __name__ == '__main__':
+    # Add the choice for execute all
+    __EXECUTION_DICT[0] = __EXECUTION_DICT.values()
     warnings.filterwarnings('ignore')
     choices_str = input(__MENU)
     while choices_str != 'exit':
@@ -40,7 +40,10 @@ if __name__ == '__main__':
             for choice in choices:
                 handler = __EXECUTION_DICT.get(choice)
                 if handler is not None:
-                    handler()
+                    try:
+                        handler()
+                    except TypeError:
+                        [handler_item() for handler_item in handler]
                 else:
                     print(__INVALID_OPTION(choices_str))
         except ValueError:

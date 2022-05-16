@@ -4,8 +4,8 @@ import numpy as np
 import pandas as pd
 
 from config.config_dirs import FEATUREMAPS_DATA, HEATMAPS_DATA, MERGED_DATA, MERGED_DATA_SAMPLED
-from utils import globals
-from utils.cluster.postprocessing import get_popularity_score
+from utils import global_values
+from utils.dataframes.extractor import get_average_popularity_score
 
 
 def preprocess_featuremaps_data():
@@ -44,7 +44,7 @@ def preprocess_data():
     # Read all the needed data
     featuremaps_data = preprocess_featuremaps_data()
     heatmaps_data = preprocess_heatmaps_data()
-    misclassified_idxs = np.argwhere(globals.mask_miss_label)
+    misclassified_idxs = np.argwhere(global_values.mask_miss_label)
 
     # Merge the data for the featuremaps and the heatmaps
     merged = pd.concat([featuremaps_data, heatmaps_data]).reset_index(drop=True)
@@ -71,16 +71,8 @@ def sample_clusters():
         df = pd.read_pickle(MERGED_DATA)
     else:
         df = preprocess_data()
-    df_groups = df.groupby('approach').agg({'clusters': [sum, len]})
-    # Find the popularity score of each cluster configuration
-    df['popularity_score'] = df.apply(
-        lambda row: get_popularity_score(
-            clusters_config=row['clusters'],
-            all_clusters=df_groups.loc[row['approach']].loc['clusters', 'sum'],
-            sample_size=df_groups.loc[row['approach']].loc['clusters', 'len']
-        ),
-        axis=1
-    )
+    # Find the average popularity  score for the configurations
+    df['popularity_score'] = get_average_popularity_score(df)
     # For each approach, choose the cluster configuration with the highest popularity score
     df['rank'] = df.groupby('approach')['popularity_score'].rank(method='dense', ascending=False).astype(int)
     sampled_clusters = df[df['rank'] == 1].drop(columns='rank')

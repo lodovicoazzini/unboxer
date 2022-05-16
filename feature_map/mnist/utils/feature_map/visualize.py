@@ -5,8 +5,8 @@ import numpy as np
 import seaborn as sns
 from matplotlib import pyplot as plt
 
+from config.config_const import EXPECTED_LABEL
 from config.config_featuremaps import NUM_CELLS
-from config.config_general import EXPECTED_LABEL
 from feature_map.mnist.utils.feature_map.compute import compute_map
 from utils.general import save_figure
 

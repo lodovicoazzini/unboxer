@@ -1,7 +1,7 @@
 import pandas as pd
 
+from config.config_const import EXPECTED_LABEL
 from config.config_dirs import FEATUREMAPS_META
-from config.config_general import EXPECTED_LABEL
 from feature_map.mnist.feature_simulator import FeatureSimulator
 from feature_map.mnist.sample import Sample
 from feature_map.mnist.utils import vectorization_tools
@@ -20,8 +20,8 @@ def extract_samples_and_stats(data, labels):
 
     data_samples = []
     filtered = list(filter(lambda t: t[2] == EXPECTED_LABEL, zip(range(len(data)), data, labels)))
-    for idx, item in enumerate(filtered):
-        seed, image, label = item
+
+    def execution(seed, image, label):
         xml_desc = vectorization_tools.vectorize(image)
         sample = Sample(seed=seed, desc=xml_desc, label=label)
         data_samples.append(sample)
@@ -29,9 +29,7 @@ def extract_samples_and_stats(data, labels):
         for feature_name, feature_value in sample.features.items():
             stats[feature_name].append(feature_value)
 
-        show_progress(idx, len(filtered))
-    # New line after the progress
-    print()
+    show_progress(execution=execution, iterable=filtered)
 
     stats = pd.DataFrame(stats)
     # compute the stats values for each feature

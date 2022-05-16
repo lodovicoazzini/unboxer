@@ -5,13 +5,13 @@ from clusim.clustering import Clustering
 from matplotlib import pyplot as plt
 
 from config.config_dirs import HEATMAPS_DATA, HEATMAPS_DATA_RAW
-from config.config_general import CLUSTERS_SORT_METRIC, MAX_SAMPLES, MAX_LABELS, CLUS_SIM
-from utils import globals
-from utils.cluster.postprocessing import sorted_clusters
-from utils.cluster.preprocessing import distance_matrix
-from utils.cluster.sample import sample_most_popular
-from utils.cluster.visualize import visualize_clusters_projections, visualize_clusters_images
+from config.config_general import CLUSTERS_SORT_METRIC, CLUSTERS_SIMILARITY_METRIC
+from utils import global_values
+from utils.clusters.postprocessing import get_sorted_clusters
+from utils.dataframes.sample import sample_most_popular
 from utils.general import save_figure, show_progress
+from utils.plotter.distance_matrix import show_distance_matrix
+from utils.plotter.visualize import show_clusters_projections, visualize_clusters_images
 
 
 def heatmaps_distance_matrix():
@@ -19,13 +19,13 @@ def heatmaps_distance_matrix():
     df = pd.read_pickle(HEATMAPS_DATA)
 
     print('Computing the distance matrix for the heatmaps ...')
-    # Remove the configurations with only one cluster
+    # Remove the configurations with only one clusters
+    df['num_clusters'] = df['clusters'].apply(len)
     plot_data = df[df['num_clusters'] > 1]
-    distances_df, fig, ax = distance_matrix(
-        heatmaps=[Clustering().from_cluster_list(clusters) for clusters in plot_data['clusters']],
-        dist_func=lambda lhs, rhs: 1 - CLUS_SIM(lhs, rhs),
-        names=plot_data['explainer'],
-        show_map=True
+    distances_df, fig, ax = show_distance_matrix(
+        clusters=[Clustering().from_cluster_list(clusters) for clusters in plot_data['clusters']],
+        dist_func=lambda lhs, rhs: 1 - CLUSTERS_SIMILARITY_METRIC(lhs, rhs),
+        names=plot_data['approach'],
     )
     fig.suptitle('Distance matrix for the low-level approaches')
     save_figure(fig, f'out/low_level/distance_matrix')
@@ -36,14 +36,14 @@ def heatmaps_clusters_projections():
     df = pd.read_pickle(HEATMAPS_DATA)
 
     # Get the most popular configurations
-    df = sample_most_popular(df, group_by='explainer').set_index('explainer')
+    df = sample_most_popular(df)
     # Iterate through the explainers
     print('Exporting the clusters projections ...')
-    explainers = df.index.unique()
-    show_progress(0, len(explainers))
-    for idx, explainer in enumerate(explainers):
+    approaches = df.index.unique()
+
+    def execution(approach):
         # Get the best configuration for the explainer
-        pick_config = df.loc[explainer]
+        pick_config = df.loc[approach]
         clusters, projections, contributions = pick_config[[
             'clusters',
             'projections',
@@ -51,18 +51,16 @@ def heatmaps_clusters_projections():
         ]]
         # Convert the clusters to membership list
         clusters_membership = np.array(Clustering().from_cluster_list(clusters).to_membership_list())
-
         # Visualize the projections of the contributions clusters
-        fig, ax = visualize_clusters_projections(
+        fig, ax = show_clusters_projections(
             projections=projections,
-            clusters=clusters_membership,
-            mask=globals.mask_miss_label
+            cluster_membership=clusters_membership,
+            mask=global_values.mask_miss_label
         )
-        ax.set_title(f'{explainer} clusters projections')
-        save_figure(fig, f'out/low_level/{explainer}/clusters_projections')
+        ax.set_title(f'{approach} clusters projections')
+        save_figure(fig, f'out/low_level/{approach}/clusters_projections')
 
-        show_progress(idx, len(explainers))
-    print()
+    show_progress(execution=execution, iterable=approaches)
 
 
 def heatmaps_clusters_images():
@@ -72,11 +70,11 @@ def heatmaps_clusters_images():
     # Get the most popular configurations
     df = sample_most_popular(df)
     print('Exporting the clusters sample images ...')
-    explainers = df.index.unique()
-    show_progress(0, len(explainers))
-    for idx, explainer in enumerate(explainers):
+    approaches = df.index.unique()
+
+    def execution(approach):
         # Get the best configuration for the explainer
-        pick_config = df.loc[explainer]
+        pick_config = df.loc[approach]
         clusters, projections, contributions = pick_config[[
             'clusters',
             'projections',
@@ -85,7 +83,10 @@ def heatmaps_clusters_images():
         # Convert the clusters to membership list
         clusters_membership = np.array(Clustering().from_cluster_list(clusters).to_membership_list())
         # Get the mask for the clusters containing misclassified elements of the selected label
-        mask_contains_miss_label = np.isin(clusters_membership, np.unique(clusters_membership[globals.mask_miss_label]))
+        mask_contains_miss_label = np.isin(
+            clusters_membership,
+            np.unique(clusters_membership[global_values.mask_miss_label])
+        )
 
         # Sample some clusters labels containing misclassified items
         clusters_labels = np.unique(clusters_membership[mask_contains_miss_label])
@@ -93,35 +94,29 @@ def heatmaps_clusters_images():
         sample_mask = np.isin(clusters_membership, sample_labels)
         # Sort the clusters if a sorting parameter is provided
         if CLUSTERS_SORT_METRIC is not None:
-            clusters = sorted_clusters(clusters, metric=CLUSTERS_SORT_METRIC)
+            clusters = get_sorted_clusters(clusters, metric=CLUSTERS_SORT_METRIC)
             clusters_membership = np.array(Clustering().from_cluster_list(clusters).to_membership_list())
         # Show some correctly classified images for clusters containing also misclassified images
-        correct_sample_mask = mask_contains_miss_label & ~globals.mask_miss_label & sample_mask
+        correct_sample_mask = mask_contains_miss_label & ~global_values.mask_miss_label & sample_mask
+        print(approach)
         fig, _ = visualize_clusters_images(
-            clusters=clusters_membership[correct_sample_mask],
-            images=globals.test_data_gs[globals.mask_label][correct_sample_mask],
-            predictions=globals.predictions[globals.mask_label][correct_sample_mask],
-            overlay=contributions[correct_sample_mask],
-            max_samples=MAX_SAMPLES,
-            max_labels=MAX_LABELS,
-            cmap='gray_r'
+            cluster_membership=clusters_membership[correct_sample_mask],
+            images=global_values.test_data_gs[global_values.mask_label][correct_sample_mask],
+            predictions=global_values.predictions[global_values.mask_label][correct_sample_mask],
+            overlay=contributions[correct_sample_mask]
         )
-        save_figure(fig, f'out/low_level/{explainer}/clusters_correct_images')
+        save_figure(fig, f'out/low_level/{approach}/clusters_correct_images')
         # Show some incorrectly classified images for clusters containing also misclassified images
-        misses_sample_mask = mask_contains_miss_label & globals.mask_miss_label & sample_mask
+        misses_sample_mask = mask_contains_miss_label & global_values.mask_miss_label & sample_mask
         fig, _ = visualize_clusters_images(
-            clusters=clusters_membership[misses_sample_mask],
-            images=globals.test_data_gs[globals.mask_label][misses_sample_mask],
-            predictions=globals.predictions[globals.mask_label][misses_sample_mask],
-            overlay=contributions[misses_sample_mask],
-            max_samples=MAX_SAMPLES,
-            max_labels=MAX_LABELS,
-            cmap='gray_r'
+            cluster_membership=clusters_membership[misses_sample_mask],
+            images=global_values.test_data_gs[global_values.mask_label][misses_sample_mask],
+            predictions=global_values.predictions[global_values.mask_label][misses_sample_mask],
+            overlay=contributions[misses_sample_mask]
         )
-        save_figure(fig, f'out/low_level/{explainer}/clusters_misclassified_images')
+        save_figure(fig, f'out/low_level/{approach}/clusters_misclassified_images')
 
-        show_progress(idx, len(explainers))
-    print()
+    show_progress(execution=execution, iterable=approaches)
 
 
 def heatmaps_silhouette_by_perplexity():
@@ -130,11 +125,11 @@ def heatmaps_silhouette_by_perplexity():
 
     print('Showing the distribution of the silhouette score by perplexity for the low-level approaches ...')
     # Iterate through the explainers
-    explainers = df['explainer'].unique()
-    show_progress(0, len(explainers))
-    for idx, explainer in enumerate(explainers):
+    approaches = df['approach'].unique()
+
+    def execution(explainer):
         # Filter the dataframe for the explainer
-        explainer_df = df[df['explainer'] == explainer]
+        explainer_df = df[df['approach'] == explainer]
         # Show the distribution of the silhouette by perplexity
         fig = plt.figure(figsize=(16, 9))
         sns.boxplot(x='perplexity', y='silhouette', data=explainer_df, color='gray').set_title(
@@ -142,5 +137,4 @@ def heatmaps_silhouette_by_perplexity():
         )
         save_figure(fig, f'out/low_level/{explainer}/silhouette_by_perplexity')
 
-        show_progress(idx, len(explainers))
-    print()
+    show_progress(execution=execution, iterable=approaches)

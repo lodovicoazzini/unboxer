@@ -1,7 +1,7 @@
 MODEL = 'in/models/digit_classifier.h5'
 
 PREDICTIONS = 'logs/predictions'
-BEST_CONFIGURATIONS = 'logs/best_configs'
+BEST_CONFIGURATIONS = 'logs/best_configurations'
 
 HEATMAPS_DATA_RAW = 'logs/heatmaps_data_raw'
 HEATMAPS_DATA = 'logs/heatmaps_data'

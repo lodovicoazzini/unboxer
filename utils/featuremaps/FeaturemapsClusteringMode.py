@@ -1,6 +1,6 @@
 from enum import Enum
 
 
-class FeatureMapsClustersMode(Enum):
+class FeaturemapsClusteringMode(Enum):
     ORIGINAL = 'original'
     REDUCED = 'reduced'

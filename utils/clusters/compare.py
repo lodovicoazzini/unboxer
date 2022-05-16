@@ -5,23 +5,20 @@ import numpy as np
 import pandas as pd
 from clusim.clustering import Clustering
 
-from utils import globals
-from utils.cluster.ClusteringMode import ClusteringMode
-from utils.general import show_progress, echo_progress_message
+from utils.clusters.ClusteringMode import ClusteringMode
+from utils.general import show_progress
 
 
 def compare_approaches(
         approaches: list[ClusteringMode],
         iterations: int,
-        get_info: Callable[[ClusteringMode], str] = None,
-        verbose: bool = False
+        get_info: Callable[[ClusteringMode], str] = None
 ) -> pd.DataFrame:
     """
     Compare a list of approaches and return the collected data
     :param approaches: The list of approaches to compare
     :param iterations: The number of iterations to process each approach
     :param get_info: A function to get the string information about the current approach
-    :param verbose: Weather to print some information about the run
     :return: A dataframe with the data collected during the tries
     """
     # Iterate over the approaches in the list
@@ -32,30 +29,20 @@ def compare_approaches(
         clustering_technique = approach.get_clustering_technique()
         dimensionality_reduction_techniques = approach.get_dimensionality_reduction_techniques()
 
-        if verbose and get_info is not None:
-            echo_progress_message(
-                iteration=idx,
-                iterations=len(approaches),
-                message=f'{explainer.__class__.__name__} ({get_info(approach)})'
-            )
-
         # Generate the contributions
-        start = time.time()
-        contributions = approach.generate_contributions(globals.test_data, globals.predictions_cat)
-        contributions_time = time.time() - start
+        contributions_start = time.time()
+        contributions = approach.generate_contributions()
+        contributions_time = time.time() - contributions_start
 
-        # Repeat for the number of iterations
-        if verbose:
-            show_progress(0, iterations)
-        for iteration in range(iterations):
+        def execution(_):
             # Cluster the contributions
-            start = time.time()
+            cluster_start = time.time()
             try:
-                clusters, score, projections = approach.cluster_contributions(contributions)
+                clusters, projections, score = approach.cluster_contributions(contributions)
             except ValueError:
-                # Black hole cluster -> silhouette error
+                # No clusters -> silhouette error
                 clusters, score, projections = [], np.nan, []
-            cluster_time = time.time() - start
+            cluster_time = time.time() - cluster_start
 
             # Collect the information for the run
             data.append({
@@ -71,9 +58,9 @@ def compare_approaches(
                 'time_clustering': round(cluster_time, 5)
             })
 
-            if verbose:
-                show_progress(iteration, iterations)
-        print()
+        message = f'{explainer.__class__.__name__} ({get_info(approach)})'
+
+        show_progress(execution=execution, iterable=range(iterations), message=message)
 
     df = pd.DataFrame(data)
     return df

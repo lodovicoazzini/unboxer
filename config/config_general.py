@@ -1,17 +1,14 @@
+from typing import Callable
+
 from clusim.clusimelement import element_sim
+from clusim.clustering import Clustering
 
-from utils.cluster.postprocessing import get_frac_misses
+from utils.clusters.extractor import get_frac_misses
 
-EXPECTED_LABEL = 5
-MAX_LABELS = 5
-MAX_SAMPLES = 5
-CLUSTERS_SORT_METRIC = lambda cluster: (
+CLUSTERS_SORT_METRIC: Callable[[list], tuple] = lambda cluster: (
     -get_frac_misses(cluster)
     if get_frac_misses(cluster) != 1
     else 0,
     -len(cluster)
 )
-CLUS_SIM = element_sim
-
-IMG_SIZE = 28
-NUM_CLASSES = 10
+CLUSTERS_SIMILARITY_METRIC: Callable[[Clustering, Clustering], float] = element_sim

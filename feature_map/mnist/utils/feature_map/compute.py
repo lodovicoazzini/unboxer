@@ -50,30 +50,28 @@ def compute_map(features, samples):
 
     # Keep track of the samples in each cell
     archive_data = np.empty([feature1.num_cells, feature2.num_cells], dtype=list)
+    for idx in np.ndindex(*archive_data.shape):
+        archive_data[idx] = []
     # Count the number of items in each cell
     coverage_data = np.zeros(shape=(feature1.num_cells, feature2.num_cells), dtype=int)
     misbehaviour_data = np.zeros(shape=(feature1.num_cells, feature2.num_cells), dtype=int)
-    # Keep track of the seeds clusters
+    # Initialize the matrix of clusters to empty lists
     clusters = np.empty([feature1.num_cells, feature2.num_cells], dtype=list)
+    for idx in np.ndindex(*clusters.shape):
+        clusters[idx] = []
 
     for idx, sample in enumerate(samples):
         x_coord = feature1.get_coordinate_for(sample) - 1
         y_coord = feature2.get_coordinate_for(sample) - 1
 
         # Archive the sample
-        if type(archive_data[x_coord, y_coord]) is list:
-            archive_data[x_coord, y_coord].append(sample)
-        else:
-            archive_data[x_coord, y_coord] = [sample]
+        archive_data[x_coord, y_coord].append(sample)
         # Increment the coverage
         coverage_data[x_coord, y_coord] += 1
         # Increment the misbehaviour
         if sample.is_misbehavior:
             misbehaviour_data[x_coord, y_coord] += 1
         # Update teh clusters
-        if type(clusters[x_coord, y_coord]) is list:
-            clusters[x_coord, y_coord].append(idx)
-        else:
-            clusters[x_coord, y_coord] = [idx]
+        clusters[x_coord, y_coord].append(idx)
 
     return archive_data, coverage_data, misbehaviour_data, clusters

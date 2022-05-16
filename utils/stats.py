@@ -1,9 +1,17 @@
+import math
+
 from cliffs_delta import cliffs_delta
 from pingouin import compute_effsize
 from scipy.stats import shapiro, ttest_ind, mannwhitneyu
 
 
-def compare_distributions(lhs, rhs):
+def compare_distributions(lhs: list, rhs: list) -> tuple[bool, float, float, str]:
+    """
+    Compare two distributions by running the appropriate statistical test
+    :param lhs: The first distribution
+    :param rhs: The second distribution
+    :return: [are different, p-value for the difference, effect size of the difference, magnitude of the difference]
+    """
     # Check if the two distributions are normal
     _, p_val_lhs = shapiro(lhs)
     _, p_val_rhs = shapiro(rhs)
@@ -23,3 +31,14 @@ def compare_distributions(lhs, rhs):
         eff_size, eff_size_str = cliffs_delta(lhs, rhs)
 
     return p_value < .05, p_value, eff_size, eff_size_str
+
+
+def weight_value(value: float, weight: float, max_weight: float) -> float:
+    """
+    Compute the weighted value with a weight between 0, 1
+    :param value: The value
+    :param weight: The weight
+    :param max_weight: The maximum value for the weights
+    :return: The weighted value
+    """
+    return value * math.log((math.e - 1) * weight / max_weight + 1)

@@ -8,22 +8,29 @@ def get_train_test_data(
         dataset: module = datasets.mnist,
         normalize: bool = True,
         rgb: bool = True,
-        verbose: bool = False):
-    # load the train and test data for the MNIST dataset
+        verbose: bool = False
+) -> tuple[tuple[np.ndarray, np.ndarray], tuple[np.ndarray, np.ndarray]]:
+    """
+    Get the train and test data for a given dataset
+    :param dataset: The dataset to use to get the data
+    :param normalize: Whether to normalize the values in the data between [0, 1]
+    :param rgb: Whether to convert the images to rgb
+    :param verbose: Whether to print some information about the imported data
+    :return: (train data, train labels), (test data, test labels)
+    """
+    # Load the data from the dataset
     (train_data, train_labels), (test_data, test_labels) = dataset.load_data()
-
-    # normalize the values between [0, 1]
+    # Normalize the values between [0, 1]
     if normalize:
         train_data, test_data = train_data / 255., test_data / 255.
-
-    # convert the images in rgb format
+    # Convert the images in rgb format
     if rgb:
         train_data, test_data = (
             tf.image.grayscale_to_rgb(tf.expand_dims(train_data, -1)),
             tf.image.grayscale_to_rgb(tf.expand_dims(test_data, -1))
         )
 
-    # print info about the data
+    # Print info about the data
     if verbose:
         print(f'Train samples: {train_data.shape[0]}')
         print(f'Test samples: {test_data.shape[0]}')
@@ -32,25 +39,33 @@ def get_train_test_data(
     return (train_data, train_labels), (test_data, test_labels)
 
 
-def get_data_masks(real: np.ndarray, predictions: np.ndarray, label=None, verbose: bool = False):
-    # get the mask for the misclassified data
-    misclassified_mask = real != predictions
-    # find the most misclassified label if not provided
-    if label is None:
-        label = sorted(
-            list(zip(*np.unique(real[misclassified_mask], return_counts=True))),
+def get_data_masks(real_labels: np.ndarray, predictions: np.ndarray, expected_label=None, verbose: bool = False):
+    """
+    Get the mask for the misclassified data and for the data with a label
+    :param real_labels: The real labels for the data
+    :param predictions: The predicted labels for the data
+    :param expected_label: The expected label for which to filter the data
+    :param verbose: Whether to print some information about the mask
+    :return: Mask for the misclassified data, mask for the expected label
+    """
+    # Get the mask for the misclassified data
+    misclassified_mask = real_labels != predictions
+    # No expected label -> find the most misclassified label
+    if expected_label is None:
+        expected_label = sorted(
+            list(zip(*np.unique(real_labels[misclassified_mask], return_counts=True))),
             key=lambda item: -item[1]
         )[0][0]
-    # get the mask for the misclassified_label
-    label_mask = real == label
-    # get the complete mask
+    # Get the mask for the expected label
+    label_mask = real_labels == expected_label
+    # Get the mask for the misclassified data of the expected label
     complete_mask = misclassified_mask & label_mask
 
     if verbose:
         num_label = len(label_mask[label_mask])
         print(f"""
-Found {num_label}/{len(real)} instances for the label {label}
-Found {len(complete_mask[complete_mask])}/{num_label} instances for misclassified {label}
+Found {num_label}/{len(real_labels)} instances for the label {expected_label}
+Found {len(complete_mask[complete_mask])}/{num_label} instances for misclassified {expected_label}
         """)
 
     return misclassified_mask, label_mask

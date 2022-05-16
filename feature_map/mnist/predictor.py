@@ -3,8 +3,8 @@ import numpy as np
 import tensorflow as tf
 from tensorflow import keras
 
+from config.config_const import EXPECTED_LABEL, NUM_CLASSES
 from config.config_dirs import MODEL
-from config.config_general import EXPECTED_LABEL, NUM_CLASSES
 from feature_map.mnist.utils.general import reshape
 
 

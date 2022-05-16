@@ -8,9 +8,9 @@ from config.config_dirs import BEST_CONFIGURATIONS, HEATMAPS_DATA_RAW, \
     HEATMAPS_DATA
 from config.config_heatmaps import HEATMAPS_PROCESS_MODE, EXPLAINERS, DIMENSIONALITY_REDUCTION_TECHNIQUES, \
     CLUSTERING_TECHNIQUE, ITERATIONS
-from utils import globals
-from utils.cluster.compare import compare_approaches
-from utils.cluster.sample import sample_highest_score
+from utils import global_values
+from utils.clusters.compare import compare_approaches
+from utils.dataframes.sample import sample_highest_score
 
 BASE_DIR = f'../out/heatmaps'
 
@@ -23,10 +23,9 @@ def main():
     if not os.path.exists(BEST_CONFIGURATIONS):
         approaches = [
             HEATMAPS_PROCESS_MODE(
-                mask=globals.mask_label,
-                explainer=explainer(globals.classifier),
-                dim_red_techs=dimensionality_reduction_technique,
-                clus_tech=CLUSTERING_TECHNIQUE
+                explainer=explainer(global_values.classifier),
+                dimensionality_reduction_techniques=dimensionality_reduction_technique,
+                clustering_technique=CLUSTERING_TECHNIQUE
             )
             for explainer, dimensionality_reduction_technique
             in product(EXPLAINERS, DIMENSIONALITY_REDUCTION_TECHNIQUES)
@@ -39,23 +38,21 @@ def main():
         for explainer in EXPLAINERS:
             try:
                 # Find the best configuration to use
-                best_config = best_configurations.loc[explainer(globals.classifier).__class__.__name__]
+                best_config = best_configurations.loc[explainer(global_values.classifier).__class__.__name__]
                 approaches.append(
                     HEATMAPS_PROCESS_MODE(
-                        mask=globals.mask_label,
-                        explainer=explainer(globals.classifier),
-                        dim_red_techs=best_config['dimensionality_reduction_techniques'],
-                        clus_tech=CLUSTERING_TECHNIQUE
+                        explainer=explainer(global_values.classifier),
+                        dimensionality_reduction_techniques=best_config['dimensionality_reduction_techniques'],
+                        clustering_technique=CLUSTERING_TECHNIQUE
                     )
                 )
             except KeyError:
                 # No best configuration for the explainer
                 for approach in [
                     HEATMAPS_PROCESS_MODE(
-                        mask=globals.mask_label,
-                        explainer=explainer(globals.classifier),
-                        dim_red_techs=dim_red_techs,
-                        clus_tech=CLUSTERING_TECHNIQUE
+                        explainer=explainer(global_values.classifier),
+                        dimensionality_reduction_techniques=dim_red_techs,
+                        clustering_technique=CLUSTERING_TECHNIQUE
                     )
                     for explainer, dim_red_techs in product([explainer], DIMENSIONALITY_REDUCTION_TECHNIQUES)
                 ]:
@@ -63,11 +60,11 @@ def main():
 
     # Collect the data for the approaches
     print('Collecting the data for the approaches ...')
+    get_perplexity = lambda app: app.get_dimensionality_reduction_techniques()[-1].get_params()['perplexity']
     df_raw = compare_approaches(
         approaches=approaches,
         iterations=ITERATIONS,
-        get_info=lambda app: app.get_dimensionality_reduction_techniques()[-1].get_params()['perplexity'],
-        verbose=True
+        get_info=lambda app: f"perplexity: {get_perplexity(app)}"
     )
     # Export the raw data
     df_raw.to_pickle(HEATMAPS_DATA_RAW)
@@ -75,13 +72,13 @@ def main():
     # Find the best configuration for each explainer
     df_sampled = sample_highest_score(df_raw)
     best_configurations_tuples = list(
-        df_sampled.reset_index()[['approach', 'dimensionality_reduction_techniques']].itertuples(index=False, name=None)
+        df_sampled[['approach', 'dimensionality_reduction_techniques']].itertuples(index=False, name=None)
     )
     # Filter the dataset for the entries corresponding to the best configuration
     df_sampled = df_raw[df_raw[
         ['approach', 'dimensionality_reduction_techniques']].apply(tuple, axis=1).isin(best_configurations_tuples)
     ]
-    # Remove the rows where the score is none -> black hole cluster
+    # Remove the rows where the score is none -> black hole clusters
     df_sampled = df_sampled.dropna(subset=['score'])
     # Export the sampled data
     df_sampled.to_pickle(HEATMAPS_DATA)
@@ -90,7 +87,7 @@ def main():
     best_configs_df = df_sampled[
         ['approach', 'dimensionality_reduction_techniques']
     ].groupby('approach').first().reset_index(drop=False)
-    best_configs_df.to_csv(BEST_CONFIGURATIONS, index=False)
+    best_configs_df.to_pickle(BEST_CONFIGURATIONS)
 
     return df_sampled
 

@@ -17,6 +17,8 @@ Select one or more of the options separated by a space: """
 __INVALID_OPTION = lambda message: f'Invalid option [{choices_str}]'
 
 if __name__ == '__main__':
+    # Add the choice for execute all
+    __EXECUTION_DICT[0] = __EXECUTION_DICT.values()
     warnings.filterwarnings('ignore')
     choices_str = input(__MENU)
     while choices_str != 'exit':
@@ -27,7 +29,10 @@ if __name__ == '__main__':
             for choice in choices:
                 handler = __EXECUTION_DICT.get(choice)
                 if handler is not None:
-                    handler()
+                    try:
+                        handler()
+                    except TypeError:
+                        [handler_item() for handler_item in handler]
                 else:
                     print(__INVALID_OPTION(choices_str))
         except ValueError:
