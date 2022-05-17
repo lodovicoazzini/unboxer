@@ -27,14 +27,14 @@ def get_frac_misses(cluster: list) -> float:
     return count_misses / len(cluster)
 
 
-def get_labels_purity(cluster: list) -> float:
+def get_labels_purity(cluster: list):
     # Get the indexes of the misclassified elements
     miss_idxs = np.argwhere(global_values.mask_miss_label).flatten()
     # Filter for the misclassified entries in the clusters
     masked_entries = [entry for entry in cluster if entry in miss_idxs]
-    # No misclassified entries -> return 0
+    # No misclassified entries -> return np.nan
     if len(masked_entries) == 0:
-        return 0
+        return np.nan
     # Find the predicted labels for the misclassified elements in the clusters
     masked_labels = global_values.predictions[global_values.mask_label][masked_entries]
     # Compute the purity of the clusters as the weighted average of the fraction of occurrences of each label

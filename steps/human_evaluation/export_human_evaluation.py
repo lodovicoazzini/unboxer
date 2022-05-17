@@ -14,7 +14,7 @@ exit: terminate the program
 
 Select one or more of the options separated by a space: """
 
-__INVALID_OPTION = lambda message: f'Invalid option [{choices_str}]'
+__INVALID_OPTION = lambda option: f'Invalid option [{option}]'
 
 if __name__ == '__main__':
     # Add the choice for execute all

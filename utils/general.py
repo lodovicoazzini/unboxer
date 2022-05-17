@@ -62,8 +62,11 @@ def show_progress(
         progress_bar_filled = int(progress / 100 * bar_len)
         progress_str = f'[{progress_bar_filled * "="}{(bar_len - progress_bar_filled) * " "}]\t{progress}%'
         if message is not None:
-            message_str = message(value) if type(message) is Callable else message
-            echo_str = f'{progress_str}:\t{message_str}\r'
+            try:
+                message_str = message(value)
+            except TypeError:
+                message_str = message
+            echo_str = f'{progress_str} ({idx}/{len(list(iterable)) - 1}):\t{message_str}\r'
         else:
             echo_str = f'{progress_str}\r'
         sys.stdout.write(echo_str)

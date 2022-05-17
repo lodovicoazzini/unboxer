@@ -32,7 +32,7 @@ def main():
         ]
     else:
         # Read the data about the best configurations
-        best_configurations = pd.read_csv(BEST_CONFIGURATIONS).set_index('approach')
+        best_configurations = pd.read_pickle(BEST_CONFIGURATIONS).set_index('approach')
         # Find the best settings for each approach
         approaches = []
         for explainer in EXPLAINERS:

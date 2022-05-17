@@ -98,7 +98,6 @@ def heatmaps_clusters_images():
             clusters_membership = np.array(Clustering().from_cluster_list(clusters).to_membership_list())
         # Show some correctly classified images for clusters containing also misclassified images
         correct_sample_mask = mask_contains_miss_label & ~global_values.mask_miss_label & sample_mask
-        print(approach)
         fig, _ = visualize_clusters_images(
             cluster_membership=clusters_membership[correct_sample_mask],
             images=global_values.test_data_gs[global_values.mask_label][correct_sample_mask],

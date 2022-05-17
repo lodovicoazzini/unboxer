@@ -1,6 +1,6 @@
 from sklearn.cluster import AffinityPropagation
 from sklearn.manifold import TSNE
-from xplique.attributions import DeconvNet, Occlusion
+from xplique.attributions import DeconvNet, Occlusion, Saliency
 
 from utils.clusters.ClusteringMode import LocalLatentMode
 
@@ -10,7 +10,7 @@ HEATMAPS_PROCESS_MODE = LocalLatentMode
 EXPLAINERS = [
     DeconvNet,
     lambda classifier: Occlusion(classifier, patch_size=10, patch_stride=10, batch_size=__batch_size),
-    # Saliency,
+    Saliency,
     # GuidedBackprop,
     # lambda classifier: Lime(classifier, nb_samples=100),
     # GradCAM,

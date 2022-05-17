@@ -33,9 +33,11 @@ def sample_highest_score(df: pd.DataFrame) -> pd.DataFrame:
     """
     df_sampled = pd.DataFrame.copy(df, deep=True)
     # Find the average score and the count of not none entries for each approach and perplexity
-    df_sampled['dimensionality_reduction_techniques'] = df_sampled['dimensionality_reduction_techniques'].apply(tuple)
+    df_sampled['techs'] = df_sampled['dimensionality_reduction_techniques'].apply(
+        lambda techs: tuple(str(tech) for tech in techs)
+    )
     grouped = df_sampled.groupby(
-        ['approach', 'dimensionality_reduction_techniques']
+        ['approach', 'techs']
     )['score'].agg(val='mean', not_none='count')
     # Find the weighted score by the count of not none scores
     max_not_none = grouped['not_none'].max()
@@ -43,10 +45,11 @@ def sample_highest_score(df: pd.DataFrame) -> pd.DataFrame:
         lambda row: weight_value(value=row['val'], weight=row['not_none'], max_weight=max_not_none),
         axis=1
     )
-    grouped = grouped.reset_index(level='dimensionality_reduction_techniques', drop=False)
-    grouped['dimensionality_reduction_techniques'] = grouped['dimensionality_reduction_techniques'].apply(list)
+    grouped = grouped.reset_index(level='techs', drop=False)
     # Find the configuration with the highest weighted score
     grouped['rank'] = grouped.groupby('approach')['weighted_val'].rank('dense', ascending=False)
-    df_sampled = grouped[grouped['rank'] == 1]
+    df_sampled = pd.merge(df_sampled, grouped, on=['approach', 'techs'])
+    df_sampled = df_sampled.drop(columns='techs')
+    df_sampled = df_sampled[df_sampled['rank'] == 1]
     df_sampled = df_sampled.groupby('approach').first().reset_index(drop=False)
     return df_sampled

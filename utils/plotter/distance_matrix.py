@@ -52,7 +52,7 @@ def show_distance_matrix(
         np.fill_diagonal(plot_data.values, np.nan)
 
     #  Show the image
-    fig_size = 2 * len(names)
+    fig_size = 2 * len(plot_data)
     fig = plt.figure(figsize=(fig_size, fig_size))
     ax = sns.heatmap(
         plot_data,
@@ -62,5 +62,6 @@ def show_distance_matrix(
         vmin=0, vmax=1
     )
     plt.xticks(rotation=90)
+    plt.yticks(rotation=0)
 
     return plot_data, fig, ax

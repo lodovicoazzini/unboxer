@@ -1,9 +1,11 @@
 import os.path
+import shutil
 
 import numpy as np
 import pandas as pd
 from matplotlib import pyplot as plt
 
+from config.config_const import MAX_SAMPLES, MAX_LABELS
 from config.config_dirs import MERGED_DATA_SAMPLED
 from steps.human_evaluation.helpers import sample_clusters
 from utils import global_values
@@ -19,23 +21,38 @@ def export_clusters_sample_images():
     else:
         df = sample_clusters()
 
+    # Remove the data if already there
+    try:
+        shutil.rmtree('out/human_evaluation/understandability')
+    except FileNotFoundError:
+        pass
+
     # Iterate through the approaches
     df = df.set_index('approach')
     approaches = df.index.values
     with open('logs/human_evaluation_understandability_images.csv', mode='w') as file:
-        for idx_approach, approach in enumerate(approaches):
+
+        def execution(approach):
             # Get the clusters for the selected approach
             clusters, contributions = df.loc[approach][['clusters', 'contributions']]
             clusters = np.array(clusters, dtype=list)
+            # Filter for the clusters with more than one element
+            clusters_len = np.vectorize(len)(clusters)
+            clusters = clusters[clusters_len > 1]
             # Create the numpy array for the contributions or set it to None if no contributions
             contributions = None if type(contributions) == float else np.array(contributions, dtype=float)
             # Find the count of misclassified entries in each clusters
-            counts_misses = np.vectorize(lambda cl: get_misses_count(cl))(
-                clusters)
+            counts_misses = np.vectorize(lambda cl: get_misses_count(cl))(clusters)
             # Find the purity and impurity of each clusters
-            purities = np.vectorize(lambda cl: get_labels_purity(cl))(clusters)
+            purities = np.vectorize(lambda cl: get_labels_purity(cl), otypes=[np.float64])(clusters)
             # Weight the purity and impurity based on the count of misclassified elements in log scale
-            counts_misses_log = np.vectorize(lambda val: 0 if val == 0 else np.log(val))(counts_misses)
+            counts_misses_log = np.vectorize(
+                lambda val: 0 if val == 0 else np.log(val), otypes=[np.float64]
+            )(counts_misses)
+            # Filter out the clusters with purity = np.nan -> no misclassified entries
+            clusters = clusters[~np.isnan(purities)]
+            counts_misses_log = counts_misses_log[~np.isnan(purities)]
+            purities = purities[~np.isnan(purities)]
             # Get the pure and impure sample
             pure_sample, impure_sample = get_balanced_samples(
                 clusters,
@@ -45,21 +62,21 @@ def export_clusters_sample_images():
             )
             all_samples = np.concatenate((pure_sample, impure_sample))
 
-            def execution(idx: int, cluster: np.array):
+            for idx, sample in list(enumerate(all_samples)):
                 fig, ax = visualize_cluster_images(
-                    np.array(cluster),
+                    np.array(sample),
                     images=global_values.test_data_gs[global_values.mask_label],
                     overlays=contributions,
                     predictions=global_values.predictions[global_values.mask_label],
                 )
                 plt.close(fig)
 
-                sub_path = f'human_evaluation/understandability/{approach}_{idx}_{len(cluster)}'
+                num_images = min(len(sample), MAX_SAMPLES * MAX_LABELS)
+                sub_path = f'human_evaluation/understandability/{approach}_{idx}_{num_images}'
                 # Export the image
                 save_figure(fig, f'out/{sub_path}')
                 # Save teh image path in the csv file
                 file.write(f'{sub_path}\n')
 
-            message = f'{idx_approach + 1}/{len(approaches)} - {approach}\n'
-
-            show_progress(execution=execution, iterable=enumerate(all_samples), message=message)
+        message = lambda approach: f'{approach}'
+        show_progress(execution=execution, iterable=approaches, message=message)

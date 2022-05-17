@@ -1,3 +1,5 @@
+import os
+
 import numpy as np
 import tensorflow as tf
 from keras.utils.np_utils import to_categorical
@@ -6,6 +8,9 @@ from config.config_const import EXPECTED_LABEL
 from config.config_dirs import MODEL, PREDICTIONS
 from steps import create_model
 from utils.dataset import get_train_test_data, get_data_masks
+
+# Prevent printing the optimization warning from Tensorflow
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '1'
 
 # Get the train and test data and labels
 (train_data, train_labels), (test_data, test_labels) = get_train_test_data(rgb=True, verbose=True)

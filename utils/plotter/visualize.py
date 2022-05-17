@@ -80,11 +80,10 @@ def visualize_clusters_images(
     # Add one row to prevent errors and remove it at the end
     n_rows = sample_labels.shape[0] + 1
     # The number of columns is the maximum number of entries for the labels + 1 for the label name
-    print('max labels: ', np.amax(sample_labels_entries_count))
     n_cols = 1 + min(MAX_SAMPLES, np.amax(sample_labels_entries_count))
 
     # Create the image
-    fig, ax = plt.subplots(n_rows, n_cols, figsize=(2 * n_rows, 2 * n_cols))
+    fig, ax = plt.subplots(n_rows, n_cols, figsize=(2 * n_cols, 2 * n_rows))
     # Keep track of the current image for the legend
     last_overlay = None
     # Plot the sample of images for each label
@@ -182,23 +181,31 @@ def visualize_cluster_images(
         # Compute the number of rows to fit the samples
         n_rows = math.ceil(len(sampled_idxs) / MAX_SAMPLES)
     # Create the figure
-    fig, ax = plt.subplots(n_rows, n_cols, figsize=(2 * n_rows, 2 * n_cols))
+    fig, ax = plt.subplots(n_rows, n_cols, figsize=(2 * n_cols, 2 * n_rows))
 
     # Sort the images by label
     samples_predictions = [predictions[idx] for idx in sampled_idxs]
     sorted_sampled_idxs = sampled_idxs[np.argsort(samples_predictions)]
 
     # Assign each axis to one index
-    for axx, idx in zip(ax.flatten(), sorted_sampled_idxs):
+    try:
+        ax_list = ax.flatten()
+    except AttributeError:
+        ax_list = [ax]
+    for axx, idx in zip(ax_list, sorted_sampled_idxs):
         # Show the image
         axx.imshow(np.ma.masked_equal(images[idx], 0).filled(np.nan), cmap='gray_r')
         # Show the overlay
         if overlays is not None:
-            axx.imshow(np.ma.masked_equal(overlays[idx], 0).filled(np.nan), cmap='Reds', alpha=.7)
+            try:
+                axx.imshow(np.ma.masked_equal(overlays[idx], 0).filled(np.nan), cmap='Reds', alpha=.7)
+            except IndexError:
+                # No overlay (featuremaps) -> do nothing
+                pass
         # Set the title to the prediction
         axx.set_title(f'Prediction: {int(predictions[idx])}')
     # Remove ticks and labels
-    for axx in ax.flatten():
+    for axx in ax_list:
         axx.axis('off')
 
     return fig, ax
