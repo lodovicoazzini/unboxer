@@ -4,6 +4,8 @@ from typing import Callable
 import numpy as np
 from clusim.clustering import Clustering
 
+from utils import global_values
+
 
 def get_sorted_clusters(clusters: list[list], metric: Callable[[list], tuple]) -> list:
     """
@@ -34,7 +36,7 @@ def get_non_unique_membership_list(clusters) -> list:
     ]
 
 
-def get_common_clusters(cluster_configurations_list: np.array, mask: np.array = None) -> np.ndarray:
+def get_common_clusters(cluster_configurations_list: np.ndarray, mask: np.array = None) -> np.ndarray:
     """
     Find the most common sub-clusters among a list of cluster configurations
     :param cluster_configurations_list: The list of cluster configurations
@@ -78,3 +80,15 @@ def get_common_clusters(cluster_configurations_list: np.array, mask: np.array = 
     intersections_counts = sorted(intersections_counts, key=lambda entry: (-entry[1], -len(entry[0])))
 
     return np.array(intersections_counts)
+
+
+def get_misclassified_items(cluster: np.ndarray):
+    """
+    Filter a cluster for the misclassified entries of the expected label
+    :param cluster: The cluster to filter
+    :return: The filtered cluster
+    """
+    # Get the indexes for the misclassified elements of the label
+    mask_idxs = np.argwhere(global_values.mask_miss_label).flatten()
+    intersection = np.intersect1d(cluster, mask_idxs)
+    return intersection

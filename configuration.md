@@ -20,6 +20,8 @@ exporting the sample images for the clusters.
 
 <code>NUM_CLASSES</code>: The number of classes for the data labels.
 
+<code>GRID_SIZE</code>: The size of the grid used for the sufficiency evaluation.
+
 </dd>
     <code>config/config_general.py</code>
     <dd>

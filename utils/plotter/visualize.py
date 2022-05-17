@@ -194,11 +194,21 @@ def visualize_cluster_images(
         ax_list = [ax]
     for axx, idx in zip(ax_list, sorted_sampled_idxs):
         # Show the image
-        axx.imshow(np.ma.masked_equal(images[idx], 0).filled(np.nan), cmap='gray_r')
+        image = images[idx]
+        axx.imshow(
+            np.ma.masked_equal(image, 0).filled(np.nan),
+            cmap='gray_r',
+            extent=(0, image.shape[0], image.shape[1], 0)
+        )
         # Show the overlay
         if overlays is not None:
             try:
-                axx.imshow(np.ma.masked_equal(overlays[idx], 0).filled(np.nan), cmap='Reds', alpha=.7)
+                axx.imshow(
+                    np.ma.masked_equal(overlays[idx], 0).filled(np.nan),
+                    cmap='Reds',
+                    alpha=.7,
+                    extent=(0, image.shape[0], image.shape[1], 0)
+                )
             except IndexError:
                 # No overlay (featuremaps) -> do nothing
                 pass
@@ -206,6 +216,7 @@ def visualize_cluster_images(
         axx.set_title(f'Prediction: {int(predictions[idx])}')
     # Remove ticks and labels
     for axx in ax_list:
-        axx.axis('off')
+        axx.tick_params(left=False, right=False, labelleft=False,
+                        labelbottom=False, bottom=False)
 
     return fig, ax

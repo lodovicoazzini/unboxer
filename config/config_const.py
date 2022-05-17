@@ -3,3 +3,4 @@ MAX_LABELS = 5
 MAX_SAMPLES = 5
 IMG_SIZE: int = 28
 NUM_CLASSES: int = 10
+GRID_SIZE: int = 3
