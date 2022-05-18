@@ -1,8 +1,12 @@
+import warnings
+from typing import Callable
+
 import matplotlib.pyplot as plt
 import matplotlib.ticker as plt_ticker
 import numpy as np
 
 from config.config_const import IMG_SIZE, GRID_SIZE
+from utils.image_similarity.stats import get_elbow_point
 
 
 def add_grid(ax: plt.Axes) -> plt.Axes:
@@ -28,28 +32,33 @@ def add_grid(ax: plt.Axes) -> plt.Axes:
     return ax
 
 
-def get_average_activations(
+def aggregate_activations(
         image: np.ndarray,
-        threshold: float = None,
-        normalize: bool = False
-):
+        threshold: float = 0,
+        normalize: bool = False,
+        aggregator: Callable = np.nanmax
+) -> tuple[np.ndarray, np.ndarray]:
     """
     Average the pixel values of an image
     :param image: The original image
     :param threshold: The threshold to ignore lower values
     :param normalize: Whether to normalize the values in [0, 1)
+    :param aggregator: The aggregation function to use
     :return: The resized image
     """
+    # Filter the warning in case of section with only nan values -> result is nan
     processed = image
-    if normalize or threshold is not None:
-        processed = image * (1 - np.nanmin(image)) / (np.nanmax(image) - np.nanmin(image))
-    if threshold is not None:
-        processed = np.ma.masked_less_equal(processed, threshold).filled(np.nan)
+    if normalize or not 0 == threshold:
         processed = processed * (1 - np.nanmin(processed)) / (np.nanmax(processed) - np.nanmin(processed))
-    averaged = np.nanmean(
-        np.nanmean(
-            processed.reshape((GRID_SIZE, processed.shape[0] // GRID_SIZE, GRID_SIZE, -1)),
-            axis=3),
-        axis=1
-    )
-    return averaged, np.nanargmax(averaged)
+    if threshold is None:
+        hist_data, hist_idxs = np.histogram(processed, bins=10 ** 2)
+        elbow_point = get_elbow_point(hist_data, smoothing=10 ** 3)
+        threshold = hist_idxs[np.argmin(abs(hist_data - elbow_point))]
+    processed = np.ma.masked_less_equal(processed, threshold).filled(np.nan)
+    window_size = processed.shape[0] // GRID_SIZE
+    reshaped = processed.reshape((1, GRID_SIZE, window_size, GRID_SIZE, window_size))
+    with warnings.catch_warnings():
+        warnings.simplefilter('ignore', category=RuntimeWarning)
+        aggregated = aggregator(aggregator(reshaped, axis=4), axis=2)
+    aggregated = np.nan_to_num(aggregated)
+    return aggregated, np.argsort(aggregated, axis=None)[::-1]
