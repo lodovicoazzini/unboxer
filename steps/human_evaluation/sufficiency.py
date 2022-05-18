@@ -59,7 +59,7 @@ def export_clusters_sample_images():
                     np.array(sample),
                     images=global_values.test_data_gs[global_values.mask_label],
                     overlays=contributions,
-                    predictions=global_values.predictions[global_values.mask_label],
+                    predictions=global_values.predictions[global_values.mask_label]
                 )
                 # Add the grid overlay
                 for axx in ax.flatten():

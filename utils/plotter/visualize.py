@@ -123,8 +123,14 @@ def visualize_clusters_images(
             # Set the title
             ax[row][col + 1].set_title(f'Prediction: {int(prediction)}')
 
-    # Remove ticks and labels from the axis
-    [axx.axis('off') for axx in ax.flatten()]
+    # Remove ticks and labels
+    try:
+        ax_list = ax.flatten()
+    except AttributeError:
+        ax_list = [ax]
+    for axx in ax_list:
+        axx.tick_params(left=False, right=False, labelleft=False, labelbottom=False, bottom=False)
+
     # Add the legend if overlays where provided
     if last_overlay is not None:
         fig.subplots_adjust(right=0.89)
@@ -141,7 +147,8 @@ def visualize_cluster_images(
         cluster: np.ndarray,
         images: np.ndarray,
         predictions: np.ndarray,
-        overlays=None
+        overlays=None,
+        title: str = None
 ):
     """
     Show a sample of images in one cluster as a grid
@@ -149,6 +156,7 @@ def visualize_cluster_images(
     :param images: The images
     :param predictions: The predictions
     :param overlays: The overlays
+    :param title: The title for the overall image
     :return: The figure and the axis for the image
     """
     # Compute the maximum number of images in the grid
@@ -216,7 +224,9 @@ def visualize_cluster_images(
         axx.set_title(f'Prediction: {int(predictions[idx])}')
     # Remove ticks and labels
     for axx in ax_list:
-        axx.tick_params(left=False, right=False, labelleft=False,
-                        labelbottom=False, bottom=False)
+        axx.tick_params(left=False, right=False, labelleft=False, labelbottom=False, bottom=False)
+
+    # Set the image title
+    fig.suptitle(title) if title is not None else None
 
     return fig, ax

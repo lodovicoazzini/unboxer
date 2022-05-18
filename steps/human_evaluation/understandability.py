@@ -68,6 +68,7 @@ def export_clusters_sample_images():
                     images=global_values.test_data_gs[global_values.mask_label],
                     overlays=contributions,
                     predictions=global_values.predictions[global_values.mask_label],
+                    title=approach
                 )
                 plt.close(fig)
 
