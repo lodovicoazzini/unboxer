@@ -73,7 +73,7 @@ def export_clusters_sample_images():
                 plt.close(fig)
 
                 num_images = min(len(sample), MAX_SAMPLES * MAX_LABELS)
-                sub_path = f'human_evaluation/understandability/{approach}_{idx}_{num_images}'
+                sub_path = f'human_evaluation/understandability/{approach}_{idx}_{num_images}.png'
                 # Export the image
                 save_figure(fig, f'out/{sub_path}')
                 # Save teh image path in the csv file
