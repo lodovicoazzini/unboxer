@@ -1,8 +1,8 @@
 # 🥡 How to run the `unboxer` 🥡
 
-## 📲 [Install](installation.md) 📲
+## 📲 [Install](README-INSTALLATION.md) 📲
 
-## ⚙️ [Configure](configuration.md) ⚙️
+## ⚙️ [Configure](README-CONFIGURATION.md) ⚙️
 
 ## 🥵 Generate the heatmaps 🥵
 
