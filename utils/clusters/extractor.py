@@ -2,7 +2,6 @@ import numpy as np
 from matplotlib import pyplot as plt
 
 from utils import global_values
-from utils.image_similarity import geometry_based
 from utils.plotter.distance_matrix import show_distance_matrix
 
 
@@ -50,7 +49,7 @@ def get_central_elements(
         cluster_idxs: list,
         cluster_elements: list,
         elements_count: int,
-        dist_func: callable = geometry_based.ssim
+        dist_func: callable,
 ) -> list:
     """
     Get the centroid and the closest elements in the cluster

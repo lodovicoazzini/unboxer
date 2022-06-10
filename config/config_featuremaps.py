@@ -1,6 +1,10 @@
-from utils.featuremaps.FeaturemapsClusteringMode import FeaturemapsClusteringMode
+from typing import Callable
 
-NUM_CELLS = 10
-BITMAP_THRESHOLD = 0.5
-ORIENTATION_THRESHOLD = 0.
-FEATUREMAPS_CLUSTERING_MODE = FeaturemapsClusteringMode.ORIGINAL
+from utils.featuremaps.FeaturemapsClusteringMode import FeaturemapsClusteringMode
+from utils.image_similarity.geometry_based import ssim
+
+NUM_CELLS: int = 10
+BITMAP_THRESHOLD: float = 0.5
+ORIENTATION_THRESHOLD: float = 0.
+FEATUREMAPS_CLUSTERING_MODE: FeaturemapsClusteringMode = FeaturemapsClusteringMode.ORIGINAL
+IMAGES_DISTANCE_METRIC: Callable = ssim

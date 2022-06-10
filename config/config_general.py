@@ -4,6 +4,7 @@ from clusim.clusimelement import element_sim
 from clusim.clustering import Clustering
 
 from utils.clusters.extractor import get_frac_misses
+from utils.image_similarity.intensity_based import euclidean_distance
 
 CLUSTERS_SORT_METRIC: Callable[[list], tuple] = lambda cluster: (
     -get_frac_misses(cluster)
@@ -12,3 +13,4 @@ CLUSTERS_SORT_METRIC: Callable[[list], tuple] = lambda cluster: (
     -len(cluster)
 )
 CLUSTERS_SIMILARITY_METRIC: Callable[[Clustering, Clustering], float] = element_sim
+HEATMAPS_SIMILARITY_METRIC: Callable = euclidean_distance
