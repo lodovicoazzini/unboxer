@@ -1,6 +1,9 @@
 import numpy as np
+from matplotlib import pyplot as plt
 
 from utils import global_values
+from utils.image_similarity import geometry_based
+from utils.plotter.distance_matrix import show_distance_matrix
 
 
 def get_misses_count(cluster: list) -> int:
@@ -41,3 +44,34 @@ def get_labels_purity(cluster: list):
     labels, counts = np.unique(masked_labels, return_counts=True)
     purity = np.average(counts / len(masked_labels), weights=counts)
     return purity
+
+
+def get_central_elements(
+        cluster_idxs: list,
+        cluster_elements: list,
+        elements_count: int,
+        dist_func: callable = geometry_based.ssim
+) -> list:
+    """
+    Get the centroid and the closest elements in the cluster
+    """
+    # Compute the distance matrix
+    dist_matrix, fig, _ = show_distance_matrix(
+        cluster_elements,
+        names=np.arange(len(global_values.mask_label))[cluster_idxs],
+        dist_func=dist_func,
+        values_range=(None, None)
+    )
+    # Close the image
+    plt.close(fig)
+    # Find the centroid of the cluster
+    cluster_idxs = np.arange(len(global_values.mask_label))[cluster_idxs]
+    medoid_idx = np.argmin(np.apply_along_axis(np.nansum, axis=0, arr=dist_matrix))
+    medoid = cluster_idxs[medoid_idx]
+    # Set the image to itself to inf
+    medoid_distances = np.nan_to_num(dist_matrix.iloc[medoid_idx], nan=np.inf)
+    # Find the three closest elements
+    closest = cluster_idxs[np.argsort(medoid_distances)][:elements_count - 1]
+    # Add the medoid
+    central = list(np.insert(closest, 0, values=medoid))
+    return central
