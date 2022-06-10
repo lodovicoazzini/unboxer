@@ -1,6 +1,6 @@
 import pandas as pd
 
-from config.config_const import EXPECTED_LABEL
+from config.config_data import EXPECTED_LABEL
 from config.config_dirs import FEATUREMAPS_META
 from feature_map.mnist.feature_simulator import FeatureSimulator
 from feature_map.mnist.sample import Sample

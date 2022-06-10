@@ -19,7 +19,9 @@ def bitmap_count(sample):
 def move_distance(sample):
     root = et.fromstring(sample.xml_desc)
     svg_path = root.find(NAMESPACE + 'path').get('d')
+    # Pattern to identify the separations between segments (M -> move between segments)
     pattern = re.compile('([\d\.]+),([\d\.]+)\sM\s([\d\.]+),([\d\.]+)')
+    # TODO: change the name -> gap
     segments = pattern.findall(svg_path)
     if len(segments) > 0:
         dists = []  # distances of moves

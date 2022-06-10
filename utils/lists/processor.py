@@ -40,7 +40,7 @@ def get_balanced_samples(
         sample_size: int,
         balanced_by: np.array,
         weights: np.array = None
-) -> tuple[np.array, np.array]:
+) -> tuple:
     """
     Sample the elements balances by some other (weighted) values
     :param elements: The elements to sample

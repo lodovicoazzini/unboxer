@@ -3,10 +3,10 @@ import pandas as pd
 from clusim.clustering import Clustering
 from sklearn.manifold import TSNE
 
-from config.config_const import MAX_LABELS
 from config.config_dirs import FEATUREMAPS_DATA
 from config.config_featuremaps import FEATUREMAPS_CLUSTERING_MODE
 from config.config_general import CLUSTERS_SIMILARITY_METRIC, CLUSTERS_SORT_METRIC
+from config.config_outputs import MAX_LABELS
 from utils import global_values
 from utils.clusters.postprocessing import get_sorted_clusters
 from utils.general import save_figure, show_progress

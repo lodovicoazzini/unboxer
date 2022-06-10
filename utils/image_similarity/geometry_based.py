@@ -20,4 +20,4 @@ def ssim(lhs: np.ndarray, rhs: np.ndarray) -> float:
     :param rhs: The second matrix
     :return: The CW-SSIM distance between the two matrices
     """
-    return 1 - structural_similarity(lhs, rhs)
+    return 1 - structural_similarity(np.squeeze(lhs), np.squeeze(rhs))

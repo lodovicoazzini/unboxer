@@ -7,7 +7,7 @@ from clusim.clustering import Clustering
 from utils import global_values
 
 
-def get_sorted_clusters(clusters: list[list], metric: Callable[[list], tuple]) -> list:
+def get_sorted_clusters(clusters: list, metric: Callable[[list], tuple]) -> list:
     """
     Sort a list of clusters based on some metric
     :param clusters: The clusters

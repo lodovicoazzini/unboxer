@@ -10,7 +10,7 @@ from utils.general import show_progress
 
 
 def compare_approaches(
-        approaches: list[ClusteringMode],
+        approaches: list,
         iterations: int,
         get_info: Callable[[ClusteringMode], str] = None
 ) -> pd.DataFrame:

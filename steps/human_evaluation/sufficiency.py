@@ -5,8 +5,8 @@ import numpy as np
 import pandas as pd
 from matplotlib import pyplot as plt
 
-from config.config_const import MAX_SAMPLES, MAX_LABELS
 from config.config_dirs import MERGED_DATA_SAMPLED
+from config.config_outputs import MAX_SAMPLES, MAX_LABELS
 from steps.human_evaluation.helpers import sample_clusters
 from utils import global_values
 from utils.clusters.extractor import get_labels_purity

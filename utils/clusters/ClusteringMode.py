@@ -23,7 +23,7 @@ class ClusteringMode(metaclass=abc.ABCMeta):
         raise NotImplementedError()
 
     @abc.abstractmethod
-    def cluster_contributions(self, contributions: np.ndarray) -> tuple[np.ndarray, np.ndarray, float]:
+    def cluster_contributions(self, contributions: np.ndarray) -> tuple:
         """
         Cluster the contributions
         :param contributions: The contributions
@@ -71,7 +71,7 @@ class LocalLatentMode(ClusteringMode):
             global_values.predictions_cat[global_values.mask_label]
         )
 
-    def cluster_contributions(self, contributions: np.ndarray) -> tuple[np.ndarray, np.ndarray, float]:
+    def cluster_contributions(self, contributions: np.ndarray) -> tuple:
         # Flatten teh contributions and project then in the latent space
         contributions_flattened = contributions.reshape(contributions.shape[0], -1)
         projections = np.array([])
@@ -99,7 +99,7 @@ class GlobalLatentMode(ClusteringMode):
             global_values.predictions
         )
 
-    def cluster_contributions(self, contributions: np.ndarray) -> tuple[np.ndarray, np.ndarray, float]:
+    def cluster_contributions(self, contributions: np.ndarray) -> tuple:
         # Flatten the contributions and project them into the latent space
         contributions_flattened = contributions.reshape(contributions.shape[0], -1)
         projections = np.array([])
