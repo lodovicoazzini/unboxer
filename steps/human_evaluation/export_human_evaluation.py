@@ -1,18 +1,16 @@
 import warnings
 
-from steps.human_evaluation import understandability, sufficiency
+from steps.human_evaluation import separability
 
 __EXECUTION_DICT = {
-    1: understandability.export_clusters_sample_images,
-    2: sufficiency.export_clusters_sample_images
+    1: separability.export_clusters_sample_images
 }
 
 __MENU = """
 exit: terminate the program
 0: Execute all
 
-1: Export the data for the understandability human study
-2: Export the data for the sufficiency human study
+1: Export the images for the separability human evaluation
 
 Select one or more of the options separated by a space: """
 
