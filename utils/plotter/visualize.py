@@ -4,7 +4,8 @@ import numpy as np
 import seaborn as sns
 from matplotlib import pyplot as plt
 
-from config.config_const import MAX_LABELS, MAX_SAMPLES, EXPECTED_LABEL
+from config.config_data import EXPECTED_LABEL
+from config.config_outputs import MAX_LABELS, MAX_SAMPLES
 
 
 def show_clusters_projections(

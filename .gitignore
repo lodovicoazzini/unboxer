@@ -10,3 +10,5 @@ out/*
 !out/README.md
 
 playground/
+
+*.ipynb

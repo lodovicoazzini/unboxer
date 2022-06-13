@@ -9,7 +9,7 @@ def get_train_test_data(
         normalize: bool = True,
         rgb: bool = True,
         verbose: bool = False
-) -> tuple[tuple[np.ndarray, np.ndarray], tuple[np.ndarray, np.ndarray]]:
+) -> tuple:
     """
     Get the train and test data for a given dataset
     :param dataset: The dataset to use to get the data

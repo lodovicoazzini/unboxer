@@ -4,7 +4,7 @@ import numpy as np
 from clusim.clustering import Clustering
 
 
-def __intra_pairs(clusters_membership: np.ndarray) -> set[tuple]:
+def __intra_pairs(clusters_membership: np.ndarray) -> set:
     # Find the labels for the clusters in the configuration
     clusters_labels = np.unique(clusters_membership)
     return set([

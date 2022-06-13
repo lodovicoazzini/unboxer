@@ -5,7 +5,7 @@ from pingouin import compute_effsize
 from scipy.stats import shapiro, ttest_ind, mannwhitneyu
 
 
-def compare_distributions(lhs: list, rhs: list) -> tuple[bool, float, float, str]:
+def compare_distributions(lhs: list, rhs: list) -> tuple:
     """
     Compare two distributions by running the appropriate statistical test
     :param lhs: The first distribution
@@ -31,6 +31,20 @@ def compare_distributions(lhs: list, rhs: list) -> tuple[bool, float, float, str
         eff_size, eff_size_str = cliffs_delta(lhs, rhs)
 
     return p_value < .05, p_value, eff_size, eff_size_str
+
+
+def get_effect_size(lhs: list, rhs: list) -> tuple:
+    """
+    Compare two distributions
+    :return: The effect size if the difference is relevant, None otherwise
+    """
+    is_relevant, p_value, eff_size, eff_size_str = compare_distributions(lhs, rhs)
+    eff_size_str_to_val = {
+        'small': 1,
+        'medium': 2,
+        'large': 3
+    }
+    return abs(eff_size), eff_size_str_to_val[eff_size_str] if is_relevant else None
 
 
 def weight_value(value: float, weight: float, max_weight: float) -> float:
