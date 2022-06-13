@@ -6,7 +6,7 @@ import pandas as pd
 from matplotlib import pyplot as plt
 
 from config.config_dirs import MERGED_DATA_SAMPLED
-from config.config_outputs import MAX_SAMPLES, MAX_LABELS
+from config.config_outputs import NUM_IMAGES_PER_CLUSTER
 from steps.human_evaluation.helpers import sample_clusters
 from utils import global_values
 from utils.clusters.extractor import get_misses_count, get_labels_purity
@@ -30,6 +30,11 @@ def export_clusters_sample_images():
     # Iterate through the approaches
     df = df.set_index('approach')
     approaches = df.index.values
+
+    # Compute the titles for the images to show the predictions
+    titles = [f'Predicted: {label}' for label in global_values.predictions[global_values.mask_label]]
+    titles = np.array(titles)
+
     with open('logs/human_evaluation_understandability_images.csv', mode='w') as file:
 
         def execution(approach):
@@ -63,16 +68,17 @@ def export_clusters_sample_images():
             all_samples = np.concatenate((pure_sample, impure_sample))
 
             for idx, sample in list(enumerate(all_samples)):
+                sample = np.random.choice(sample, NUM_IMAGES_PER_CLUSTER, replace=False)
                 fig, ax = visualize_cluster_images(
                     np.array(sample),
                     images=global_values.test_data_gs[global_values.mask_label],
                     overlays=contributions,
-                    predictions=global_values.predictions[global_values.mask_label],
-                    title=approach
+                    titles=titles
                 )
+                fig.suptitle(approach)
                 plt.close(fig)
 
-                num_images = min(len(sample), MAX_SAMPLES * MAX_LABELS)
+                num_images = min(len(sample), NUM_IMAGES_PER_CLUSTER)
                 sub_path = f'human_evaluation/understandability/{approach}_{idx}_{num_images}.png'
                 # Export the image
                 save_figure(fig, f'out/{sub_path}')

@@ -6,7 +6,7 @@ import pandas as pd
 from matplotlib import pyplot as plt
 
 from config.config_dirs import MERGED_DATA_SAMPLED
-from config.config_outputs import MAX_SAMPLES, MAX_LABELS
+from config.config_outputs import NUM_IMAGES_PER_CLUSTER
 from steps.human_evaluation.helpers import sample_clusters
 from utils import global_values
 from utils.clusters.extractor import get_labels_purity
@@ -37,6 +37,10 @@ def export_clusters_sample_images():
     high_leval_paths = []
     featuremaps_appendix = '_featuremaps'
 
+    # Compute the titles for the images to show the predictions
+    titles = [f'Predicted: {label}' for label in global_values.predictions[global_values.mask_label]]
+    titles = np.array(titles)
+
     def execution(approach):
         # Get the clusters for the selected approach
         clusters, contributions = df.loc[approach][['clusters', 'contributions']]
@@ -56,13 +60,14 @@ def export_clusters_sample_images():
         all_samples = np.concatenate((pure_sample, impure_sample))
 
         for idx, sample in list(enumerate(all_samples)):
+            sample = np.random.choice(sample, NUM_IMAGES_PER_CLUSTER, replace=False)
             fig, ax = visualize_cluster_images(
                 np.array(sample),
                 images=global_values.test_data_gs[global_values.mask_label],
                 overlays=contributions,
-                predictions=global_values.predictions[global_values.mask_label]
+                titles=titles
             )
-            num_images = min(len(sample), MAX_SAMPLES * MAX_LABELS)
+            num_images = min(len(sample), NUM_IMAGES_PER_CLUSTER)
 
             is_featuremap = False
             if contributions is not None:

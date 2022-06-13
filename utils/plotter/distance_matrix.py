@@ -13,7 +13,8 @@ def show_distance_matrix(
         show_values: bool = True,
         remove_diagonal: bool = True,
         values_range: tuple = (0, 1),
-        show_color_bar: bool = True
+        show_color_bar: bool = True,
+        show_progress_bar=False
 ):
     """
     Show the distance matrix for a list of clusters
@@ -24,6 +25,7 @@ def show_distance_matrix(
     :param remove_diagonal: Whether to remove the values on the diagonal (compare with itself)
     :param values_range: The range for the values in the distance matrix
     :param show_color_bar: Whether to show the color-bar on the side
+    :param show_progress_bar: Whether to show the progress bar
     :return: The data for the distance matrix, the figure and the axis
     """
     # Initialize the distance matrix to 0
@@ -36,7 +38,11 @@ def show_distance_matrix(
             lhs, rhs = clusters[row], clusters[col]
             distance_matrix[row][col] = dist_func(lhs, rhs)
 
-    show_progress(execution=execution, iterable=range(0, num_clusters))
+    if show_progress_bar:
+        show_progress(execution=execution, iterable=range(0, num_clusters))
+    else:
+        for row_idx in range(0, num_clusters):
+            execution(row_idx)
 
     # Mirror on the diagonal to complete the rest of the matrix
     distance_matrix = distance_matrix + distance_matrix.T
