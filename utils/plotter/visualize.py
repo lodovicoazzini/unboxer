@@ -4,8 +4,8 @@ import numpy as np
 import seaborn as sns
 from matplotlib import pyplot as plt
 
-from config.config_data import EXPECTED_LABEL
 from config.config_outputs import MAX_LABELS, MAX_SAMPLES
+from utils import global_values
 
 
 def show_clusters_projections(
@@ -147,61 +147,34 @@ def visualize_clusters_images(
 def visualize_cluster_images(
         cluster: np.ndarray,
         images: np.ndarray,
-        predictions: np.ndarray,
-        overlays=None,
-        title: str = None
+        titles: np.ndarray = None,
+        overlays: np.ndarray = None
 ):
     """
     Show a sample of images in one cluster as a grid
     :param cluster: The cluster
     :param images: The images
-    :param predictions: The predictions
+    :param titles: The titles for the images
     :param overlays: The overlays
-    :param title: The title for the overall image
     :return: The figure and the axis for the image
     """
-    # Compute the maximum number of images in the grid
-    max_images = MAX_SAMPLES * MAX_LABELS
-    # Sample the images if too many
-    sampled_idxs = cluster
-    if cluster.shape[0] > max_images:
-        # Find the indexes for the misclassified entries in the cluster
-        miss_idxs = np.argwhere(predictions != EXPECTED_LABEL).flatten()
-        # Filter the indexes in the cluster for the misclassified ones
-        sampled_idxs = np.intersect1d(cluster, miss_idxs)
-        # If the misclassified images don't fill the grid, add correctly classified ones
-        if len(sampled_idxs) < max_images:
-            # Get the indexes for the correctly classified entries in the cluster
-            cluster_correct_idxs = np.setdiff1d(cluster, sampled_idxs)
-            # Draw a random sample of correct indexes
-            sample_idxs_correct = np.random.choice(cluster_correct_idxs, max_images - len(sampled_idxs))
-            sampled_idxs = np.concatenate((sampled_idxs, sample_idxs_correct))
-        # If there are too many misclassified images, sample them
-        elif len(sampled_idxs) > max_images:
-            sampled_idxs = np.random.choice(sampled_idxs, max_images)
-
-    # Compute the number of rows and columns in the image
-    if len(sampled_idxs) <= MAX_SAMPLES:
-        # The samples fit in one row
-        n_cols = len(sampled_idxs)
-        n_rows = 1
-    else:
-        n_cols = MAX_SAMPLES
-        # Compute the number of rows to fit the samples
-        n_rows = math.ceil(len(sampled_idxs) / MAX_SAMPLES)
+    # Rows and cols so that the grid is squared
+    n_cols = math.ceil(len(cluster) ** .5)
+    n_rows = math.floor(len(cluster) ** .5)
     # Create the figure
     fig, ax = plt.subplots(n_rows, n_cols, figsize=(2 * n_cols, 2 * n_rows))
 
     # Sort the images by label
-    samples_predictions = [predictions[idx] for idx in sampled_idxs]
-    sorted_sampled_idxs = sampled_idxs[np.argsort(samples_predictions)]
+    label_predictions = global_values.predictions[global_values.mask_label]
+    cluster_predictions = [label_predictions[idx] for idx in cluster]
+    cluster = cluster[np.argsort(cluster_predictions)]
 
     # Assign each axis to one index
     try:
         ax_list = ax.flatten()
     except AttributeError:
         ax_list = [ax]
-    for axx, idx in zip(ax_list, sorted_sampled_idxs):
+    for axx, idx in zip(ax_list, cluster):
         # Show the image
         image = images[idx]
         axx.imshow(
@@ -221,13 +194,10 @@ def visualize_cluster_images(
             except IndexError:
                 # No overlay (featuremaps) -> do nothing
                 pass
-        # Set the title to the prediction
-        axx.set_title(f'Prediction: {int(predictions[idx])}')
+        # Set the title
+        axx.set_title(titles[idx]) if titles is not None else None
     # Remove ticks and labels
     for axx in ax_list:
         axx.tick_params(left=False, right=False, labelleft=False, labelbottom=False, bottom=False)
-
-    # Set the image title
-    fig.suptitle(title) if title is not None else None
 
     return fig, ax

@@ -75,7 +75,6 @@ def export_clusters_sample_images():
             fig, ax = visualize_cluster_images(
                 central_elements,
                 images=label_images,
-                predictions=global_values.predictions[global_values.mask_label],
                 overlays=contributions
             )
             plt.close(fig)
