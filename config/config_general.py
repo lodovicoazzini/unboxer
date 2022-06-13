@@ -14,3 +14,4 @@ CLUSTERS_SORT_METRIC: Callable[[list], tuple] = lambda cluster: (
 )
 CLUSTERS_SIMILARITY_METRIC: Callable[[Clustering, Clustering], float] = element_sim
 HEATMAPS_SIMILARITY_METRIC: Callable = euclidean_distance
+HUMAN_EVALUATION_APPROACHES = ['Lime', 'Rise', 'moves+orientation(10)_original', 'orientation+bitmaps(10)_original']

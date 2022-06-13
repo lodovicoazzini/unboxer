@@ -9,7 +9,8 @@ from matplotlib import image as plt_img
 from matplotlib import pyplot as plt
 
 from config.config_dirs import MERGED_DATA_SAMPLED
-from config.config_outputs import NUM_IMAGES_PER_CLUSTER, NUM_LABELABILITY_CLUSTERS
+from config.config_general import HUMAN_EVALUATION_APPROACHES
+from config.config_outputs import NUM_IMAGES_PER_CLUSTER, NUM_SEPARABILITY_CLUSTERS
 from steps.human_evaluation.helpers import sample_clusters
 from utils import global_values
 from utils.clusters.extractor import get_labels_purity, get_central_elements
@@ -19,7 +20,7 @@ from utils.image_similarity.geometry_based import ssim
 from utils.lists.processor import weight_values
 from utils.plotter.visualize import visualize_cluster_images
 
-__BASE_DIR = 'out/human_evaluation/labelability'
+__BASE_DIR = 'out/human_evaluation/separability'
 
 
 def export_clusters_sample_images():
@@ -36,7 +37,12 @@ def export_clusters_sample_images():
 
     # Iterate over the approaches
     df = df.set_index('approach')
+    df = df.loc[HUMAN_EVALUATION_APPROACHES]
     approaches = df.index.values
+
+    # Compute the titles for the images to show the predictions
+    titles = [f'Predicted: {label}' for label in global_values.predictions[global_values.mask_label]]
+    titles = np.array(titles)
 
     def execution(approach):
         # Get the clusters and contributions for the selected approach
@@ -57,7 +63,7 @@ def export_clusters_sample_images():
         # Sort the cluster by weighted purity
         cluster_list = cluster_list[cluster_list_weights.argsort()[::-1]]
         # Select the first N clusters based on the value in the config file
-        cluster_list = cluster_list[:NUM_LABELABILITY_CLUSTERS]
+        cluster_list = cluster_list[:NUM_SEPARABILITY_CLUSTERS]
         # Get the contributions or the images themselves
         label_images = global_values.test_data_gs[global_values.mask_label]
 
@@ -75,7 +81,8 @@ def export_clusters_sample_images():
             fig, ax = visualize_cluster_images(
                 central_elements,
                 images=label_images,
-                overlays=contributions
+                overlays=contributions,
+                titles=titles
             )
             plt.close(fig)
             save_figure(fig, os.path.join(__BASE_DIR, approach, str(idx)))
