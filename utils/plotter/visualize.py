@@ -147,14 +147,14 @@ def visualize_clusters_images(
 def visualize_cluster_images(
         cluster: np.ndarray,
         images: np.ndarray,
-        titles: np.ndarray = None,
+        labels=None,
         overlays: np.ndarray = None
 ):
     """
     Show a sample of images in one cluster as a grid
     :param cluster: The cluster
     :param images: The images
-    :param titles: The titles for the images
+    :param labels: The titles for the images or `auto` for incremental labels
     :param overlays: The overlays
     :return: The figure and the axis for the image
     """
@@ -174,7 +174,8 @@ def visualize_cluster_images(
         ax_list = ax.flatten()
     except AttributeError:
         ax_list = [ax]
-    for axx, idx in zip(ax_list, cluster):
+    for inc, t in enumerate(zip(ax_list, cluster)):
+        axx, idx = t
         # Show the image
         image = images[idx]
         axx.imshow(
@@ -195,7 +196,10 @@ def visualize_cluster_images(
                 # No overlay (featuremaps) -> do nothing
                 pass
         # Set the title
-        axx.set_title(titles[idx]) if titles is not None else None
+        if labels == 'auto':
+            axx.set_title(chr(ord('A') + inc))
+        elif labels is not None:
+            axx.set_title(labels[idx]) if labels is not None else None
     # Remove ticks and labels
     for axx in ax_list:
         axx.tick_params(left=False, right=False, labelleft=False, labelbottom=False, bottom=False)

@@ -1,6 +1,7 @@
 import warnings
 from typing import Callable
 
+import matplotlib.image as plt_img
 import matplotlib.pyplot as plt
 import matplotlib.ticker as plt_ticker
 import numpy as np
@@ -76,3 +77,16 @@ def aggregate_activations(
     # Sort the regions by descending aggregated value
     sorted_regions = np.argsort(aggregated, axis=None)[::-1]
     return aggregated, sorted_regions, processed
+
+
+def combine_images(lhs_path, rhs_path):
+    # Create the general figure
+    fig, ax = plt.subplots(1, 2)
+    # Read and visualize the images
+    lhs, rhs = plt_img.imread(lhs_path), plt_img.imread(rhs_path)
+    ax[0].imshow(lhs)
+    ax[1].imshow(rhs)
+    # Remove the ticks
+    for axx in ax.flatten():
+        axx.tick_params(left=False, right=False, labelleft=False, labelbottom=False, bottom=False)
+    return fig, ax
