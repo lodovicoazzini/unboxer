@@ -57,7 +57,7 @@ def get_central_elements(
     # Compute the distance matrix
     dist_matrix, fig, _ = show_distance_matrix(
         cluster_elements,
-        names=np.arange(len(global_values.mask_label))[cluster_idxs],
+        index=np.arange(len(global_values.mask_label))[cluster_idxs],
         dist_func=dist_func,
         values_range=(None, None)
     )

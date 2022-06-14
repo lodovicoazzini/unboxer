@@ -23,9 +23,11 @@ def heatmaps_distance_matrix():
     df['num_clusters'] = df['clusters'].apply(len)
     plot_data = df[df['num_clusters'] > 1]
     distances_df, fig, ax = show_distance_matrix(
-        clusters=[Clustering().from_cluster_list(clusters) for clusters in plot_data['clusters']],
+        values=[Clustering().from_cluster_list(clusters) for clusters in plot_data['clusters']],
         dist_func=lambda lhs, rhs: 1 - CLUSTERS_SIMILARITY_METRIC(lhs, rhs),
-        names=plot_data['approach'],
+        index=plot_data['approach'],
+        show_progress_bar=True,
+        remove_diagonal=False
     )
     fig.suptitle('Distance matrix for the low-level approaches')
     save_figure(fig, f'out/low_level/distance_matrix')

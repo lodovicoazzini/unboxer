@@ -35,7 +35,9 @@ def featuremaps_distance_matrix():
     dist_matrix, fig, ax = show_distance_matrix(
         featuremaps_clusters,
         dist_func=lambda l, r: 1 - CLUSTERS_SIMILARITY_METRIC(l, r),
-        names=df['complete_approach']
+        index=df['complete_approach'],
+        show_progress_bar=True,
+        remove_diagonal=False
     )
     ax.set_title('Distance matrix for the feature combinations')
     save_figure(fig, f'{BASE_DIR}/distance_matrix')
