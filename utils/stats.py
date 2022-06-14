@@ -1,8 +1,12 @@
 import math
 
+import numpy as np
+import pandas as pd
 from cliffs_delta import cliffs_delta
 from pingouin import compute_effsize
 from scipy.stats import shapiro, ttest_ind, mannwhitneyu
+
+from utils.general import show_progress
 
 
 def compare_distributions(lhs: list, rhs: list) -> tuple:
@@ -56,3 +60,47 @@ def weight_value(value: float, weight: float, max_weight: float) -> float:
     :return: The weighted value
     """
     return value * math.log((math.e - 1) * weight / max_weight + 1)
+
+
+def compute_distance_matrix(
+        values: list,
+        index: list,
+        dist_func: callable,
+        remove_diagonal: bool = False,
+        show_progress_bar: bool = False
+):
+    # Initialize the distance matrix to 0
+    num_clusters = len(values)
+    distance_matrix = np.zeros(shape=(num_clusters, num_clusters))
+
+    # Compute the distances above the diagonal
+    def execution(row):
+        for col in range(row, num_clusters):
+            lhs, rhs = values[row], values[col]
+            distance_matrix[row][col] = dist_func(lhs, rhs)
+
+    if show_progress_bar:
+        show_progress(execution=execution, iterable=range(0, num_clusters))
+    else:
+        for row_idx in range(0, num_clusters):
+            execution(row_idx)
+
+    # Mirror on the diagonal to complete the rest of the matrix
+    distance_matrix = distance_matrix + distance_matrix.T
+    distance_matrix[np.diag_indices_from(distance_matrix)] /= 2
+
+    # Prepare the data for the image
+    dist_matrix = pd.DataFrame(
+        distance_matrix,
+        columns=index,
+        index=index
+    )
+    # Find the average value for each cell
+    dist_matrix = dist_matrix.groupby(dist_matrix.columns, axis=1).mean()
+    dist_matrix = dist_matrix.groupby(dist_matrix.index, axis=0).mean()
+
+    # Remove the values on the diagonal
+    if remove_diagonal:
+        np.fill_diagonal(dist_matrix.values, np.nan)
+
+    return dist_matrix.values

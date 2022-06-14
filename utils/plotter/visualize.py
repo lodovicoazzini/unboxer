@@ -160,7 +160,7 @@ def visualize_cluster_images(
     """
     # Rows and cols so that the grid is squared
     n_cols = math.ceil(len(cluster) ** .5)
-    n_rows = math.floor(len(cluster) ** .5)
+    n_rows = math.ceil(len(cluster) ** .5)
     # Create the figure
     fig, ax = plt.subplots(n_rows, n_cols, figsize=(2 * n_cols, 2 * n_rows))
 

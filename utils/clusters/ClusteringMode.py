@@ -5,6 +5,8 @@ import tensorflow as tf
 from sklearn.metrics import silhouette_score
 
 from utils import global_values
+from utils.image_similarity.intensity_based import euclidean_distance
+from utils.stats import compute_distance_matrix
 
 
 class ClusteringMode(metaclass=abc.ABCMeta):
@@ -90,7 +92,7 @@ class LocalLatentMode(ClusteringMode):
 class GlobalLatentMode(ClusteringMode):
 
     def __init__(self, explainer, dimensionality_reduction_techniques, clustering_technique):
-        super(GlobalLatentMode, self).__init__(explainer, dimensionality_reduction_techniques, clustering_technique, )
+        super(GlobalLatentMode, self).__init__(explainer, dimensionality_reduction_techniques, clustering_technique)
 
     def generate_contributions(self):
         # Generate the contributions for the whole data
@@ -114,3 +116,38 @@ class GlobalLatentMode(ClusteringMode):
         except ValueError:
             score = np.nan
         return clusters, projections_filtered, score
+
+
+class OriginalMode(ClusteringMode):
+
+    def __init__(self, explainer, dimensionality_reduction_techniques, clustering_technique):
+        super(OriginalMode, self).__init__(explainer, dimensionality_reduction_techniques, clustering_technique)
+
+    def generate_contributions(self):
+        # Generate the contributions for the filtered data
+        return super(OriginalMode, self)._generate_contributions(
+            global_values.test_data[global_values.mask_label],
+            global_values.predictions_cat[global_values.mask_label]
+        )
+
+    def cluster_contributions(self, contributions: np.ndarray) -> tuple:
+        # Compute the distance matrix for the contributions
+        dist_matrix = compute_distance_matrix(
+            list(contributions),
+            index=[str(idx) for idx in range(len(contributions))],
+            dist_func=lambda lhs, rhs: 1 - euclidean_distance(lhs, rhs),
+            show_progress_bar=False
+        )
+        # Cluster the contributions using the distance matrix
+        clusters = self.get_clustering_technique().fit_predict(dist_matrix)
+        # Flatten teh contributions and project then in the latent space
+        contributions_flattened = contributions.reshape(contributions.shape[0], -1)
+        projections = np.array([])
+        for dim_red_tech in self.get_dimensionality_reduction_techniques():
+            projections = dim_red_tech.fit_transform(contributions_flattened)
+        # Compute the silhouette for the clusters
+        try:
+            score = silhouette_score(projections, clusters)
+        except ValueError:
+            score = np.nan
+        return clusters, projections, score

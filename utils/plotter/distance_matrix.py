@@ -1,14 +1,13 @@
 import numpy as np
-import pandas as pd
 import seaborn as sns
 from matplotlib import pyplot as plt
 
-from utils.general import show_progress
+from utils.stats import compute_distance_matrix
 
 
 def show_distance_matrix(
-        clusters: list,
-        names: list,
+        values: list,
+        index: list,
         dist_func: callable,
         show_values: bool = True,
         remove_diagonal: bool = True,
@@ -18,8 +17,8 @@ def show_distance_matrix(
 ):
     """
     Show the distance matrix for a list of clusters
-    :param clusters: The list of clusters to use
-    :param names: The names for the rows and columns of the distance matrix
+    :param values: The list of clusters to use
+    :param index: The names for the rows and columns of the distance matrix
     :param dist_func: The distance function to use
     :param show_values: Whether to show the values in each cell
     :param remove_diagonal: Whether to remove the values on the diagonal (compare with itself)
@@ -28,53 +27,29 @@ def show_distance_matrix(
     :param show_progress_bar: Whether to show the progress bar
     :return: The data for the distance matrix, the figure and the axis
     """
-    # Initialize the distance matrix to 0
-    num_clusters = len(clusters)
-    distance_matrix = np.zeros(shape=(num_clusters, num_clusters))
 
-    # Compute the distances above the diagonal
-    def execution(row):
-        for col in range(row, num_clusters):
-            lhs, rhs = clusters[row], clusters[col]
-            distance_matrix[row][col] = dist_func(lhs, rhs)
-
-    if show_progress_bar:
-        show_progress(execution=execution, iterable=range(0, num_clusters))
-    else:
-        for row_idx in range(0, num_clusters):
-            execution(row_idx)
-
-    # Mirror on the diagonal to complete the rest of the matrix
-    distance_matrix = distance_matrix + distance_matrix.T
-    distance_matrix[np.diag_indices_from(distance_matrix)] /= 2
-
-    # Prepare the data for the image
-    plot_data = pd.DataFrame(
-        distance_matrix,
-        columns=names,
-        index=names
+    # Get the distance matrix
+    dist_matrix = compute_distance_matrix(
+        values=values,
+        index=index,
+        dist_func=dist_func,
+        remove_diagonal=remove_diagonal,
+        show_progress_bar=show_progress_bar
     )
-    # Find the average value for each cell
-    plot_data = plot_data.groupby(plot_data.columns, axis=1).mean()
-    plot_data = plot_data.groupby(plot_data.index, axis=0).mean()
-
-    # Remove the values on the diagonal
-    if remove_diagonal:
-        np.fill_diagonal(plot_data.values, np.nan)
 
     #  Show the image
-    fig_size = len(plot_data)
+    fig_size = len(dist_matrix)
     fig = plt.figure(figsize=(fig_size, fig_size))
     ax = sns.heatmap(
-        plot_data,
+        dist_matrix,
         annot=show_values,
         cmap='OrRd',
         linewidth=.1,
-        vmin=values_range[0] if values_range[0] is not None else np.nanmin(plot_data.values),
-        vmax=values_range[1] if values_range[1] is not None else np.nanmax(plot_data.values),
+        vmin=values_range[0] if values_range[0] is not None else np.nanmin(dist_matrix.values),
+        vmax=values_range[1] if values_range[1] is not None else np.nanmax(dist_matrix.values),
         cbar=show_color_bar
     )
     plt.xticks(rotation=90)
     plt.yticks(rotation=0)
 
-    return plot_data, fig, ax
+    return dist_matrix, fig, ax
