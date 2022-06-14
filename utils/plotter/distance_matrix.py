@@ -45,8 +45,8 @@ def show_distance_matrix(
         annot=show_values,
         cmap='OrRd',
         linewidth=.1,
-        vmin=values_range[0] if values_range[0] is not None else np.nanmin(dist_matrix.values),
-        vmax=values_range[1] if values_range[1] is not None else np.nanmax(dist_matrix.values),
+        vmin=values_range[0] if values_range[0] is not None else np.nanmin(dist_matrix),
+        vmax=values_range[1] if values_range[1] is not None else np.nanmax(dist_matrix),
         cbar=show_color_bar
     )
     plt.xticks(rotation=90)

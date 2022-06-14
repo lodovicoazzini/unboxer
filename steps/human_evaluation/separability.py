@@ -5,7 +5,6 @@ from itertools import combinations
 
 import numpy as np
 import pandas as pd
-from matplotlib import image as plt_img
 from matplotlib import pyplot as plt
 
 from config.config_dirs import MERGED_DATA_SAMPLED
@@ -17,6 +16,7 @@ from utils.clusters.extractor import get_labels_purity, get_central_elements
 from utils.clusters.postprocessing import get_misclassified_items
 from utils.general import save_figure, show_progress
 from utils.image_similarity.geometry_based import ssim
+from utils.images.postprocessing import combine_images
 from utils.lists.processor import weight_values
 from utils.plotter.visualize import visualize_cluster_images
 
@@ -39,10 +39,6 @@ def export_clusters_sample_images():
     df = df.set_index('approach')
     df = df.loc[HUMAN_EVALUATION_APPROACHES]
     approaches = df.index.values
-
-    # Compute the titles for the images to show the predictions
-    titles = [f'Predicted: {label}' for label in global_values.predictions[global_values.mask_label]]
-    titles = np.array(titles)
 
     def execution(approach):
         # Get the clusters and contributions for the selected approach
@@ -81,8 +77,7 @@ def export_clusters_sample_images():
             fig, ax = visualize_cluster_images(
                 central_elements,
                 images=label_images,
-                overlays=contributions,
-                titles=titles
+                labels='auto'
             )
             plt.close(fig)
             save_figure(fig, os.path.join(__BASE_DIR, approach, str(idx)))
@@ -95,14 +90,8 @@ def export_clusters_sample_images():
 
         for idx, t in enumerate(images_paths_combinations):
             lhs_path, rhs_path = t
-            # Create the general figure
-            fig, ax = plt.subplots(1, 2)
-            # Read and visualize the images
-            lhs, rhs = plt_img.imread(lhs_path), plt_img.imread(rhs_path)
-            ax[0].imshow(lhs)
-            ax[1].imshow(rhs)
-            ax[0].set_title('First cluster')
-            ax[1].set_title('Second cluster')
+            fig, ax = combine_images(lhs_path, rhs_path)
+            ax[0].set_title('First cluster'), ax[1].set_title('Second cluster')
             plt.tight_layout()
             save_figure(fig, os.path.join(__BASE_DIR, f'{approach}_{idx}'))
 

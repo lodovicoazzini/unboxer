@@ -65,7 +65,7 @@ def export_clusters_sample_images():
                 np.array(sample),
                 images=global_values.test_data_gs[global_values.mask_label],
                 overlays=contributions,
-                titles=titles
+                labels=titles
             )
             num_images = min(len(sample), NUM_IMAGES_PER_CLUSTER)
 

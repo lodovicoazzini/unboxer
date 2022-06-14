@@ -1,8 +1,7 @@
 import numpy as np
-from matplotlib import pyplot as plt
 
 from utils import global_values
-from utils.plotter.distance_matrix import show_distance_matrix
+from utils.stats import compute_distance_matrix
 
 
 def get_misses_count(cluster: list) -> int:
@@ -55,20 +54,17 @@ def get_central_elements(
     Get the centroid and the closest elements in the cluster
     """
     # Compute the distance matrix
-    dist_matrix, fig, _ = show_distance_matrix(
-        cluster_elements,
+    dist_matrix = compute_distance_matrix(
+        values=cluster_elements,
         index=np.arange(len(global_values.mask_label))[cluster_idxs],
         dist_func=dist_func,
-        values_range=(None, None)
     )
-    # Close the image
-    plt.close(fig)
     # Find the centroid of the cluster
     cluster_idxs = np.arange(len(global_values.mask_label))[cluster_idxs]
     medoid_idx = np.argmin(np.apply_along_axis(np.nansum, axis=0, arr=dist_matrix))
     medoid = cluster_idxs[medoid_idx]
     # Set the image to itself to inf
-    medoid_distances = np.nan_to_num(dist_matrix.iloc[medoid_idx], nan=np.inf)
+    medoid_distances = np.nan_to_num(dist_matrix[medoid_idx], nan=np.inf)
     # Find the three closest elements
     closest = cluster_idxs[np.argsort(medoid_distances)][:elements_count - 1]
     # Add the medoid
