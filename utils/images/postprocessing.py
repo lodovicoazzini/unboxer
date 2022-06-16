@@ -5,6 +5,7 @@ import matplotlib.image as plt_img
 import matplotlib.pyplot as plt
 import matplotlib.ticker as plt_ticker
 import numpy as np
+from sklearn.manifold import TSNE
 
 from config.config_outputs import IMG_SIZE, GRID_SIZE
 from utils.general import save_figure
@@ -90,3 +91,10 @@ def combine_images(lhs_path, rhs_path):
     for axx in ax.flatten():
         axx.tick_params(left=False, right=False, labelleft=False, labelbottom=False, bottom=False)
     return fig, ax
+
+
+def project_images(images, verbose=True):
+    print('Generating the projections ...') if verbose else None
+    # Flatten the images and compute the projections
+    projections = TSNE(perplexity=40).fit_transform(images.reshape(images.shape[0], -1))
+    return projections

@@ -140,14 +140,7 @@ class OriginalMode(ClusteringMode):
         )
         # Cluster the contributions using the similarity matrix
         clusters = self.get_clustering_technique()(affinity='precomputed').fit_predict(similarity_matrix)
-        # Flatten teh contributions and project then in the latent space
-        contributions_flattened = contributions.reshape(contributions.shape[0], -1)
-        projections = np.array([])
-        for dim_red_tech in self.get_dimensionality_reduction_techniques():
-            projections = dim_red_tech.fit_transform(contributions_flattened)
         # Compute the silhouette for the clusters
-        try:
-            score = silhouette_score(projections, clusters)
-        except ValueError:
-            score = np.nan
-        return clusters, projections, score
+        score = silhouette_score(1 - similarity_matrix, clusters, metric='precomputed')
+        
+        return clusters, np.nan, score

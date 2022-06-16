@@ -11,7 +11,7 @@ from utils import global_values
 from utils.clusters.postprocessing import get_sorted_clusters
 from utils.general import save_figure, show_progress
 from utils.plotter.distance_matrix import show_comparison_matrix
-from utils.plotter.visualize import show_clusters_projections, visualize_clusters_images
+from utils.plotter.visualize import visualize_clusters_projections, visualize_clusters_images
 
 BASE_DIR = f'out/featuremaps/{FEATUREMAPS_CLUSTERING_MODE.value}'
 
@@ -72,11 +72,7 @@ def featuremaps_clusters_projections():
     def execution(feature_combination, cluster_configuration):
         clusters_membership = np.array(cluster_configuration.to_membership_list())
         # Show the clusters projections
-        fig, ax = show_clusters_projections(
-            projections=projections,
-            cluster_membership=clusters_membership,
-            mask=global_values.mask_miss_label
-        )
+        fig, ax = visualize_clusters_projections(projections=projections, cluster_list=clusters_membership)
         fig.suptitle(f'Clusters projections for the features {feature_combination}')
         save_figure(fig, f'{BASE_DIR}/clusters_projections_{feature_combination}')
 

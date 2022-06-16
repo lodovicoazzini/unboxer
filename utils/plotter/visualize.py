@@ -2,36 +2,31 @@ import math
 
 import numpy as np
 import seaborn as sns
+from clusim.clustering import Clustering
 from matplotlib import pyplot as plt
 
 from config.config_outputs import MAX_LABELS, MAX_SAMPLES
 from utils import global_values
 
 
-def show_clusters_projections(
-        projections: np.ndarray,
-        cluster_membership: np.ndarray,
-        mask=None
-):
+def visualize_clusters_projections(projections: np.ndarray, cluster_list: np.ndarray):
     """
     Visualize the projections for the clusters as a points
     :param projections: The 2D projections for the images
-    :param cluster_membership: The cluster membership list for the projections
-    :param mask: The mask for the misclassified data
+    :param cluster_list: The cluster membership list for the projections
     :return: The image and the axis
     """
     # Create the figure
     fig = plt.figure(figsize=(16, 9))
-    # If no mask is provided -> all same style
-    if mask is None:
-        mask = np.zeros(len(projections), dtype=bool)
+    # Get the membership_list for the clusters
+    cluster_membership = Clustering().from_cluster_list(list(cluster_list)).to_membership_list()
     # Plot the data
     ax = sns.scatterplot(
         x=[projection[0] for projection in projections],
         y=[projection[1] for projection in projections],
         hue=cluster_membership,
-        style=['misclassified' if is_masked else 'correct' for is_masked in mask],
-        palette=sns.color_palette('viridis', n_colors=len(set(cluster_membership)))
+        style=['misclassified' if is_masked else 'correct' for is_masked in global_values.mask_miss_label],
+        palette=sns.color_palette('viridis', n_colors=len(np.unique(cluster_membership)))
     )
     # Style
     sns.despine(left=True, bottom=True)

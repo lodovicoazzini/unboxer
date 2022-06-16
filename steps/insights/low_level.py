@@ -11,7 +11,7 @@ from utils.clusters.postprocessing import get_sorted_clusters
 from utils.dataframes.sample import sample_most_popular
 from utils.general import save_figure, show_progress
 from utils.plotter.distance_matrix import show_comparison_matrix
-from utils.plotter.visualize import show_clusters_projections, visualize_clusters_images
+from utils.plotter.visualize import visualize_clusters_projections, visualize_clusters_images
 
 
 def heatmaps_distance_matrix():
@@ -54,11 +54,7 @@ def heatmaps_clusters_projections():
         # Convert the clusters to membership list
         clusters_membership = np.array(Clustering().from_cluster_list(clusters).to_membership_list())
         # Visualize the projections of the contributions clusters
-        fig, ax = show_clusters_projections(
-            projections=projections,
-            cluster_membership=clusters_membership,
-            mask=global_values.mask_miss_label
-        )
+        fig, ax = visualize_clusters_projections(projections=projections, cluster_list=clusters_membership)
         ax.set_title(f'{approach} clusters projections')
         save_figure(fig, f'out/low_level/{approach}/clusters_projections')
 
