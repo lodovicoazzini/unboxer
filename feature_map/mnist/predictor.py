@@ -18,7 +18,7 @@ class Predictor:
         explabel = (np.expand_dims(EXPECTED_LABEL, 0))
 
         # Convert class vectors to binary class matrices
-        explabel = keras.utils.to_categorical(explabel, NUM_CLASSES)
+        explabel = keras.utils.to_categorical(explabel, 10)
         explabel = np.argmax(explabel.squeeze())
 
         # Predictions vector

@@ -32,7 +32,7 @@ try:
     predictions = np.loadtxt(PREDICTIONS)
 except FileNotFoundError:
     predictions = create_model.generate_predictions(classifier=classifier, test_data=test_data)
-predictions_cat = to_categorical(predictions, num_classes=len(set(train_labels)))
+predictions_cat = to_categorical(predictions)
 # Get the mask for the data
 mask_miss, mask_label = get_data_masks(
     real_labels=test_labels,

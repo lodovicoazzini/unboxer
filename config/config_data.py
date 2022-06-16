@@ -5,4 +5,3 @@ from tensorflow.keras import datasets
 DATASET_LOADER = lambda: datasets.mnist.load_data()
 RGB_IMAGES = True
 EXPECTED_LABEL = 5
-NUM_CLASSES: int = 10
