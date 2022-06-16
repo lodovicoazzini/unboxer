@@ -1,4 +1,5 @@
 MODEL = 'in/models/digit_classifier.h5'
+# MODEL = 'in/models/letters_classifier.h5'
 
 PREDICTIONS = 'logs/predictions'
 BEST_CONFIGURATIONS = 'logs/best_configurations'
