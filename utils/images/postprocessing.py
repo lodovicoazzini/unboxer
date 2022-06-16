@@ -8,7 +8,7 @@ import numpy as np
 
 from config.config_outputs import IMG_SIZE, GRID_SIZE
 from utils.general import save_figure
-from utils.image_similarity.stats import get_elbow_point
+from utils.images.image_similarity.stats import get_elbow_point
 
 
 def add_grid(ax: plt.Axes) -> plt.Axes:

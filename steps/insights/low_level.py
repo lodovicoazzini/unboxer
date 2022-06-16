@@ -10,7 +10,7 @@ from utils import global_values
 from utils.clusters.postprocessing import get_sorted_clusters
 from utils.dataframes.sample import sample_most_popular
 from utils.general import save_figure, show_progress
-from utils.plotter.distance_matrix import show_distance_matrix
+from utils.plotter.distance_matrix import show_comparison_matrix
 from utils.plotter.visualize import show_clusters_projections, visualize_clusters_images
 
 
@@ -22,9 +22,9 @@ def heatmaps_distance_matrix():
     # Remove the configurations with only one clusters
     df['num_clusters'] = df['clusters'].apply(len)
     plot_data = df[df['num_clusters'] > 1]
-    distances_df, fig, ax = show_distance_matrix(
+    distances_df, fig, ax = show_comparison_matrix(
         values=[Clustering().from_cluster_list(clusters) for clusters in plot_data['clusters']],
-        dist_func=lambda lhs, rhs: 1 - CLUSTERS_SIMILARITY_METRIC(lhs, rhs),
+        metric=lambda lhs, rhs: 1 - CLUSTERS_SIMILARITY_METRIC(lhs, rhs),
         index=plot_data['approach'],
         show_progress_bar=True,
         remove_diagonal=False

@@ -8,14 +8,13 @@ import pandas as pd
 from matplotlib import pyplot as plt
 
 from config.config_dirs import MERGED_DATA_SAMPLED
-from config.config_general import HUMAN_EVALUATION_APPROACHES
+from config.config_general import HUMAN_EVALUATION_APPROACHES, IMAGES_SIMILARITY_METRIC
 from config.config_outputs import NUM_IMAGES_PER_CLUSTER, NUM_SEPARABILITY_CLUSTERS
 from steps.human_evaluation.helpers import sample_clusters
 from utils import global_values
 from utils.clusters.extractor import get_labels_purity, get_central_elements
 from utils.clusters.postprocessing import get_misclassified_items
 from utils.general import save_figure, show_progress
-from utils.image_similarity.geometry_based import ssim
 from utils.images.postprocessing import combine_images
 from utils.lists.processor import weight_values
 from utils.plotter.visualize import visualize_cluster_images
@@ -66,11 +65,12 @@ def export_clusters_sample_images():
         # Process the clusters
         for idx, cluster in enumerate(cluster_list):
             # Get the central elements in the cluster
+            dist_func = lambda lhs, rhs: 1 - IMAGES_SIMILARITY_METRIC(lhs, rhs)
             central_elements = get_central_elements(
                 cluster,
                 cluster_elements=contributions[cluster] if contributions is not None else label_images[cluster],
                 elements_count=NUM_IMAGES_PER_CLUSTER,
-                dist_func=ssim
+                metric=dist_func
             )
             central_elements = np.array(central_elements)
             # Visualize the central elements

@@ -62,22 +62,22 @@ def weight_value(value: float, weight: float, max_weight: float) -> float:
     return value * math.log((math.e - 1) * weight / max_weight + 1)
 
 
-def compute_distance_matrix(
+def compute_comparison_matrix(
         values: list,
         index: list,
-        dist_func: callable,
+        metric: callable,
         remove_diagonal: bool = False,
         show_progress_bar: bool = False
 ):
-    # Initialize the distance matrix to 0
+    # Initialize the matrix to 0
     num_clusters = len(values)
-    distance_matrix = np.zeros(shape=(num_clusters, num_clusters))
+    matrix = np.zeros(shape=(num_clusters, num_clusters))
 
-    # Compute the distances above the diagonal
+    # Compute the values above the diagonal
     def execution(row):
         for col in range(row, num_clusters):
             lhs, rhs = values[row], values[col]
-            distance_matrix[row][col] = dist_func(lhs, rhs)
+            matrix[row][col] = metric(lhs, rhs)
 
     if show_progress_bar:
         show_progress(execution=execution, iterable=range(0, num_clusters))
@@ -86,21 +86,21 @@ def compute_distance_matrix(
             execution(row_idx)
 
     # Mirror on the diagonal to complete the rest of the matrix
-    distance_matrix = distance_matrix + distance_matrix.T
-    distance_matrix[np.diag_indices_from(distance_matrix)] /= 2
+    matrix = matrix + matrix.T
+    matrix[np.diag_indices_from(matrix)] /= 2
 
     # Prepare the data for the image
-    dist_matrix = pd.DataFrame(
-        distance_matrix,
+    matrix_df = pd.DataFrame(
+        matrix,
         columns=index,
         index=index
     )
     # Find the average value for each cell
-    dist_matrix = dist_matrix.groupby(dist_matrix.columns, axis=1).mean()
-    dist_matrix = dist_matrix.groupby(dist_matrix.index, axis=0).mean()
+    matrix_df = matrix_df.groupby(matrix_df.columns, axis=1).mean()
+    matrix_df = matrix_df.groupby(matrix_df.index, axis=0).mean()
 
     # Remove the values on the diagonal
     if remove_diagonal:
-        np.fill_diagonal(dist_matrix.values, np.nan)
+        np.fill_diagonal(matrix_df.values, np.nan)
 
-    return dist_matrix.values
+    return matrix_df.values

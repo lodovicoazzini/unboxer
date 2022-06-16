@@ -1,14 +1,16 @@
+from typing import Callable
+
 import numpy as np
 import seaborn as sns
 from matplotlib import pyplot as plt
 
-from utils.stats import compute_distance_matrix
+from utils.stats import compute_comparison_matrix
 
 
-def show_distance_matrix(
+def show_comparison_matrix(
         values: list,
         index: list,
-        dist_func: callable,
+        metric: Callable,
         show_values: bool = True,
         remove_diagonal: bool = True,
         values_range: tuple = (0, 1),
@@ -19,7 +21,7 @@ def show_distance_matrix(
     Show the distance matrix for a list of clusters
     :param values: The list of clusters to use
     :param index: The names for the rows and columns of the distance matrix
-    :param dist_func: The distance function to use
+    :param metric: The distance function to use
     :param show_values: Whether to show the values in each cell
     :param remove_diagonal: Whether to remove the values on the diagonal (compare with itself)
     :param values_range: The range for the values in the distance matrix
@@ -29,27 +31,29 @@ def show_distance_matrix(
     """
 
     # Get the distance matrix
-    dist_matrix = compute_distance_matrix(
+    matrix = compute_comparison_matrix(
         values=values,
         index=index,
-        dist_func=dist_func,
+        metric=metric,
         remove_diagonal=remove_diagonal,
         show_progress_bar=show_progress_bar
     )
 
     #  Show the image
-    fig_size = len(dist_matrix)
+    fig_size = len(matrix)
     fig = plt.figure(figsize=(fig_size, fig_size))
     ax = sns.heatmap(
-        dist_matrix,
+        matrix,
         annot=show_values,
+        xticklabels=index,
+        yticklabels=index,
         cmap='OrRd',
         linewidth=.1,
-        vmin=values_range[0] if values_range[0] is not None else np.nanmin(dist_matrix),
-        vmax=values_range[1] if values_range[1] is not None else np.nanmax(dist_matrix),
+        vmin=values_range[0] if values_range[0] is not None else np.nanmin(matrix),
+        vmax=values_range[1] if values_range[1] is not None else np.nanmax(matrix),
         cbar=show_color_bar
     )
     plt.xticks(rotation=90)
     plt.yticks(rotation=0)
 
-    return dist_matrix, fig, ax
+    return matrix, fig, ax

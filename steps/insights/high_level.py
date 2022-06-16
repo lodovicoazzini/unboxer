@@ -10,7 +10,7 @@ from config.config_outputs import MAX_LABELS
 from utils import global_values
 from utils.clusters.postprocessing import get_sorted_clusters
 from utils.general import save_figure, show_progress
-from utils.plotter.distance_matrix import show_distance_matrix
+from utils.plotter.distance_matrix import show_comparison_matrix
 from utils.plotter.visualize import show_clusters_projections, visualize_clusters_images
 
 BASE_DIR = f'out/featuremaps/{FEATUREMAPS_CLUSTERING_MODE.value}'
@@ -32,9 +32,9 @@ def featuremaps_distance_matrix():
         lambda row: f'{row["approach"]}({row["map_size"]})_{row["mode"]}',
         axis=1
     )
-    dist_matrix, fig, ax = show_distance_matrix(
+    dist_matrix, fig, ax = show_comparison_matrix(
         featuremaps_clusters,
-        dist_func=lambda l, r: 1 - CLUSTERS_SIMILARITY_METRIC(l, r),
+        metric=lambda l, r: 1 - CLUSTERS_SIMILARITY_METRIC(l, r),
         index=df['complete_approach'],
         show_progress_bar=True,
         remove_diagonal=False
