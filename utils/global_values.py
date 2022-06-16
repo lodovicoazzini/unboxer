@@ -4,7 +4,7 @@ import numpy as np
 import tensorflow as tf
 from keras.utils.np_utils import to_categorical
 
-from config.config_data import EXPECTED_LABEL
+from config.config_data import EXPECTED_LABEL, DATASET_LOADER, RGB_IMAGES
 from config.config_dirs import MODEL, PREDICTIONS
 from steps import create_model
 from utils.dataset import get_train_test_data, get_data_masks
@@ -13,7 +13,11 @@ from utils.dataset import get_train_test_data, get_data_masks
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '1'
 
 # Get the train and test data and labels
-(train_data, train_labels), (test_data, test_labels) = get_train_test_data(rgb=True, verbose=True)
+(train_data, train_labels), (test_data, test_labels) = get_train_test_data(
+    dataset_loader=DATASET_LOADER,
+    rgb=RGB_IMAGES,
+    verbose=False
+)
 train_data_gs, test_data_gs = (
     tf.image.rgb_to_grayscale(train_data).numpy(),
     tf.image.rgb_to_grayscale(test_data).numpy()
@@ -34,6 +38,6 @@ mask_miss, mask_label = get_data_masks(
     real_labels=test_labels,
     predictions=predictions,
     expected_label=EXPECTED_LABEL,
-    verbose=True
+    verbose=False
 )
 mask_miss_label = mask_miss[mask_label]

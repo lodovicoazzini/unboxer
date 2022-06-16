@@ -1,28 +1,25 @@
+from typing import Callable
+
 import numpy as np
 import tensorflow as tf
-from tensorflow.keras import datasets
-from tensorflow.python.module import module
 
 
 def get_train_test_data(
-        dataset: module = datasets.mnist,
-        normalize: bool = True,
-        rgb: bool = True,
+        dataset_loader: Callable,
+        rgb: bool,
         verbose: bool = False
 ) -> tuple:
     """
     Get the train and test data for a given dataset
-    :param dataset: The dataset to use to get the data
-    :param normalize: Whether to normalize the values in the data between [0, 1]
+    :param dataset_loader: The method to load the dataset as (train_data, train_labels), (test_data, test_labels)
     :param rgb: Whether to convert the images to rgb
     :param verbose: Whether to print some information about the imported data
     :return: (train data, train labels), (test data, test labels)
     """
     # Load the data from the dataset
-    (train_data, train_labels), (test_data, test_labels) = dataset.load_data()
+    (train_data, train_labels), (test_data, test_labels) = dataset_loader()
     # Normalize the values between [0, 1]
-    if normalize:
-        train_data, test_data = train_data / 255., test_data / 255.
+    train_data, test_data = train_data / 255., test_data / 255.
     # Convert the images in rgb format
     if rgb:
         train_data, test_data = (

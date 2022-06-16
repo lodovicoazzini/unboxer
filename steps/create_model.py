@@ -3,7 +3,9 @@ import tensorflow as tf
 from keras.utils.np_utils import to_categorical
 from tensorflow.keras import layers
 from tensorflow.keras.models import Sequential
+from tensorflow.keras.datasets import mnist
 
+from config.config_data import RGB_IMAGES
 from config.config_dirs import MODEL, PREDICTIONS
 from utils.dataset import get_train_test_data
 
@@ -38,7 +40,12 @@ def create_model():
     )
 
     # Get the train test data and convert the labels to categorical
-    (train_data, train_labels), (test_data, test_labels) = get_train_test_data(rgb=True, verbose=True)
+    mnist_loader = lambda: mnist.load_data()
+    (train_data, train_labels), (test_data, test_labels) = get_train_test_data(
+        dataset_loader=mnist_loader,
+        rgb=RGB_IMAGES,
+        verbose=True
+    )
     train_labels_cat, test_labels_cat = to_categorical(train_labels, 10), to_categorical(test_labels, 10)
 
     # Train the classifier
