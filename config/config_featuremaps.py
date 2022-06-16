@@ -1,7 +1,7 @@
 from typing import Callable
 
 from utils.featuremaps.FeaturemapsClusteringMode import FeaturemapsClusteringMode
-from utils.image_similarity.geometry_based import ssim
+from utils.images.image_similarity.geometry_based import ssim
 
 NUM_CELLS: int = 10
 BITMAP_THRESHOLD: float = 0.5

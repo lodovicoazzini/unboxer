@@ -26,5 +26,5 @@ DIMENSIONALITY_REDUCTION_TECHNIQUES = [
     [TSNE(perplexity=perplexity)]
     for perplexity in list(range(1, 8, 2)) + [10, 20, 30, 40]
 ]
-CLUSTERING_TECHNIQUE = AffinityPropagation(affinity='precomputed')
+CLUSTERING_TECHNIQUE = AffinityPropagation
 ITERATIONS = 3
