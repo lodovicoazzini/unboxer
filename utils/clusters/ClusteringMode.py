@@ -132,8 +132,12 @@ class OriginalMode(ClusteringMode):
 
     def cluster_contributions(self, contributions: np.ndarray) -> tuple:
         # Compute the similarity matrix for the contributions
-        similarity_matrix = compute_comparison_matrix(list(contributions), metric=IMAGES_SIMILARITY_METRIC,
-                                                      show_progress_bar=True)
+        similarity_matrix = compute_comparison_matrix(
+            list(contributions),
+            metric=IMAGES_SIMILARITY_METRIC,
+            show_progress_bar=True,
+            multi_process=True
+        )
         # Cluster the contributions using the similarity matrix
         clusters = self.get_clustering_technique()(affinity='precomputed').fit_predict(similarity_matrix)
         # Compute the silhouette for the clusters

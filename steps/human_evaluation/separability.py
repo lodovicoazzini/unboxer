@@ -6,6 +6,7 @@ from itertools import combinations
 import numpy as np
 import pandas as pd
 from matplotlib import pyplot as plt
+from tqdm import tqdm
 
 from config.config_dirs import MERGED_DATA_SAMPLED
 from config.config_general import HUMAN_EVALUATION_APPROACHES, IMAGES_SIMILARITY_METRIC
@@ -14,7 +15,7 @@ from steps.human_evaluation.helpers import sample_clusters
 from utils import global_values
 from utils.clusters.extractor import get_labels_purity, get_central_elements
 from utils.clusters.postprocessing import get_misclassified_items
-from utils.general import save_figure, show_progress
+from utils.general import save_figure
 from utils.images.postprocessing import combine_images
 from utils.lists.processor import weight_values
 from utils.plotter.visualize import visualize_cluster_images
@@ -39,7 +40,7 @@ def export_clusters_sample_images():
     df = df.loc[HUMAN_EVALUATION_APPROACHES]
     approaches = df.index.values
 
-    def execution(approach):
+    for approach in tqdm(approaches, desc='Collecting the data for the approaches'):
         # Get the clusters and contributions for the selected approach
         cluster_list, contributions = df.loc[approach][['clusters', 'contributions']]
         # Filter the clusters for the misclassified elements
@@ -63,14 +64,18 @@ def export_clusters_sample_images():
         label_images = global_values.test_data_gs[global_values.mask_label]
 
         # Process the clusters
-        for idx, cluster in enumerate(cluster_list):
+        for idx, cluster in tqdm(
+                list(enumerate(cluster_list)),
+                desc='Visualizing the central elements fo the clusters',
+                leave=False
+        ):
             # Get the central elements in the cluster
-            dist_func = lambda lhs, rhs: 1 - IMAGES_SIMILARITY_METRIC(lhs, rhs)
             central_elements = get_central_elements(
                 cluster,
                 cluster_elements=contributions[cluster] if contributions is not None else label_images[cluster],
                 elements_count=NUM_IMAGES_PER_CLUSTER,
-                metric=dist_func
+                metric=lambda lhs, rhs: 1 - IMAGES_SIMILARITY_METRIC(lhs, rhs),
+                show_progress_bar=False
             )
             central_elements = np.array(central_elements)
             # Visualize the central elements
@@ -94,6 +99,3 @@ def export_clusters_sample_images():
             ax[0].set_title('First cluster'), ax[1].set_title('Second cluster')
             plt.tight_layout()
             save_figure(fig, os.path.join(__BASE_DIR, f'{approach}_{idx}'))
-
-    message = lambda approach: f'{approach}'
-    show_progress(execution=execution, iterable=approaches, message=message)

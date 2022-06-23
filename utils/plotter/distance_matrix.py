@@ -15,7 +15,8 @@ def show_comparison_matrix(
         remove_diagonal: bool = True,
         values_range: tuple = (0, 1),
         show_color_bar: bool = True,
-        show_progress_bar=False
+        show_progress_bar=False,
+        multi_process: bool = False
 ):
     """
     Show the distance matrix for a list of clusters
@@ -27,11 +28,19 @@ def show_comparison_matrix(
     :param values_range: The range for the values in the distance matrix
     :param show_color_bar: Whether to show the color-bar on the side
     :param show_progress_bar: Whether to show the progress bar
+    :param multi_process: Whether to use multiple processes to compute the matrix
     :return: The data for the distance matrix, the figure and the axis
     """
 
     # Get the distance matrix
-    matrix = compute_comparison_matrix(values=values, metric=metric, show_progress_bar=show_progress_bar)
+    matrix = compute_comparison_matrix(
+        values=values,
+        metric=metric,
+        show_progress_bar=show_progress_bar,
+        multi_process=multi_process
+    )
+    if remove_diagonal:
+        np.fill_diagonal(matrix, np.nan)
 
     #  Show the image
     fig_size = len(matrix)

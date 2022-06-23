@@ -52,11 +52,6 @@ def show_progress(
     print() if message is not None else None
     # Echo the initial progress bar
     for idx, value in enumerate(iterable):
-        # Execute the code on the current value
-        try:
-            result = execution(*value)
-        except TypeError:
-            result = execution(value)
         # Echo the progress bar
         progress = int(idx / (len(list(iterable)) - 1) * 100)
         progress_bar_filled = int(progress / 100 * bar_len)
@@ -70,6 +65,11 @@ def show_progress(
         else:
             echo_str = f'{progress_str}\r'
         sys.stdout.write(echo_str)
+        # Execute the code on the current value
+        try:
+            result = execution(*value)
+        except TypeError:
+            result = execution(value)
         # sys.stdout.flush()
     # New line at the end of the execution
     print()

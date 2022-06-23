@@ -3,13 +3,10 @@ import multiprocessing
 from itertools import combinations
 
 import numpy as np
-import pandas as pd
 from cliffs_delta import cliffs_delta
 from pingouin import compute_effsize
 from scipy.stats import shapiro, ttest_ind, mannwhitneyu
 from tqdm import tqdm
-
-from utils.general import show_progress
 
 
 def compare_distributions(lhs: list, rhs: list) -> tuple:
@@ -65,17 +62,25 @@ def weight_value(value: float, weight: float, max_weight: float) -> float:
     return value * math.log((math.e - 1) * weight / max_weight + 1)
 
 
-def compute_comparison_matrix(values: list, metric: callable, show_progress_bar: bool = False):
+def compute_comparison_matrix(
+        values: list,
+        metric: callable,
+        show_progress_bar: bool = False,
+        multi_process: bool = False
+):
     # Compute all the combinations of values
     pairs = list(combinations(values, 2))
     # Show the progress bar
     if show_progress_bar:
-        pairs = tqdm(pairs, total=len(pairs))
+        pairs = tqdm(pairs, desc='Computing the comparison matrix')
     # Create the pool of processes and use it to compute the distances
-    pool = multiprocessing.Pool()
-    distances = pool.map(metric, pairs)
+    if multi_process:
+        pool = multiprocessing.Pool()
+        distances = pool.map(metric, pairs)
+    else:
+        distances = [metric(lhs, rhs) for lhs, rhs in pairs]
     # Initialize the distance matrix to 0
-    matrix = np.zeros(len(values), len(values))
+    matrix = np.zeros(shape=(len(values), len(values)))
     # Set the values of the upper triangular matrix to the distances
     matrix[np.triu_indices_from(matrix, 1)] = distances
     # Complete the matrix by transposing it

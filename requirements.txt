@@ -67,3 +67,4 @@ zlib~=1.2.12
 pygments~=2.11.2
 setuptools~=61.2.0
 emnist~=0.0
+tqdm~=4.64.0

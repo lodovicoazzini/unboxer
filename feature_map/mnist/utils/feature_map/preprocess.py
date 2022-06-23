@@ -1,4 +1,5 @@
 import pandas as pd
+from tqdm import tqdm
 
 from config.config_data import EXPECTED_LABEL
 from config.config_dirs import FEATUREMAPS_META
@@ -6,7 +7,6 @@ from feature_map.mnist.feature_simulator import FeatureSimulator
 from feature_map.mnist.sample import Sample
 from feature_map.mnist.utils import vectorization_tools
 from feature_map.mnist.utils.general import missing
-from utils.general import show_progress
 
 
 def extract_samples_and_stats(data, labels):
@@ -21,15 +21,13 @@ def extract_samples_and_stats(data, labels):
     data_samples = []
     filtered = list(filter(lambda t: t[2] == EXPECTED_LABEL, zip(range(len(data)), data, labels)))
 
-    def execution(seed, image, label):
+    for seed, image, label in tqdm(filtered):
         xml_desc = vectorization_tools.vectorize(image)
         sample = Sample(seed=seed, desc=xml_desc, label=label)
         data_samples.append(sample)
         # update the stats
         for feature_name, feature_value in sample.features.items():
             stats[feature_name].append(feature_value)
-
-    show_progress(execution=execution, iterable=filtered)
 
     stats = pd.DataFrame(stats)
     # compute the stats values for each feature
