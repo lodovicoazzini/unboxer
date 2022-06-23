@@ -2,6 +2,7 @@ import os.path
 import warnings
 from itertools import product
 
+import numpy as np
 import pandas as pd
 
 from config.config_dirs import BEST_CONFIGURATIONS, HEATMAPS_DATA_RAW, \
@@ -9,6 +10,7 @@ from config.config_dirs import BEST_CONFIGURATIONS, HEATMAPS_DATA_RAW, \
 from config.config_heatmaps import HEATMAPS_PROCESS_MODE, EXPLAINERS, DIMENSIONALITY_REDUCTION_TECHNIQUES, \
     CLUSTERING_TECHNIQUE, ITERATIONS
 from utils import global_values
+from utils.clusters.ClusteringMode import OriginalMode
 from utils.clusters.compare import compare_approaches
 from utils.dataframes.sample import sample_highest_score
 
@@ -21,15 +23,26 @@ def main():
     # Collect the approaches to use
     print('Collecting the approaches ...')
     if not os.path.exists(BEST_CONFIGURATIONS):
-        approaches = [
-            HEATMAPS_PROCESS_MODE(
-                explainer=explainer(global_values.classifier),
-                dimensionality_reduction_techniques=dimensionality_reduction_technique,
-                clustering_technique=CLUSTERING_TECHNIQUE
-            )
-            for explainer, dimensionality_reduction_technique
-            in product(EXPLAINERS, DIMENSIONALITY_REDUCTION_TECHNIQUES)
-        ]
+        # No best configuration for the explainer
+        if HEATMAPS_PROCESS_MODE is OriginalMode:
+            approaches = [
+                HEATMAPS_PROCESS_MODE(
+                    explainer=explainer(global_values.classifier),
+                    dimensionality_reduction_techniques=[],
+                    clustering_technique=CLUSTERING_TECHNIQUE
+                )
+                for explainer in EXPLAINERS
+            ]
+        else:
+            approaches = [
+                HEATMAPS_PROCESS_MODE(
+                    explainer=explainer(global_values.classifier),
+                    dimensionality_reduction_techniques=dimensionality_reduction_technique,
+                    clustering_technique=CLUSTERING_TECHNIQUE
+                )
+                for explainer, dimensionality_reduction_technique
+                in product(EXPLAINERS, DIMENSIONALITY_REDUCTION_TECHNIQUES)
+            ]
     else:
         # Read the data about the best configurations
         best_configurations = pd.read_pickle(BEST_CONFIGURATIONS).set_index('approach')
@@ -48,23 +61,38 @@ def main():
                 )
             except KeyError:
                 # No best configuration for the explainer
-                for approach in [
-                    HEATMAPS_PROCESS_MODE(
-                        explainer=explainer(global_values.classifier),
-                        dimensionality_reduction_techniques=dim_red_techs,
-                        clustering_technique=CLUSTERING_TECHNIQUE
+                if HEATMAPS_PROCESS_MODE is OriginalMode:
+                    approaches.append(
+                        HEATMAPS_PROCESS_MODE(
+                            explainer=explainer(global_values.classifier),
+                            dimensionality_reduction_techniques=[],
+                            clustering_technique=CLUSTERING_TECHNIQUE
+                        )
                     )
-                    for explainer, dim_red_techs in product([explainer], DIMENSIONALITY_REDUCTION_TECHNIQUES)
-                ]:
-                    approaches.append(approach)
+                else:
+                    for approach in [
+                        HEATMAPS_PROCESS_MODE(
+                            explainer=explainer(global_values.classifier),
+                            dimensionality_reduction_techniques=dim_red_techs,
+                            clustering_technique=CLUSTERING_TECHNIQUE
+                        )
+                        for explainer, dim_red_techs in product([explainer], DIMENSIONALITY_REDUCTION_TECHNIQUES)
+                    ]:
+                        approaches.append(approach)
 
     # Collect the data for the approaches
     print('Collecting the data for the approaches ...')
-    get_perplexity = lambda app: app.get_dimensionality_reduction_techniques()[-1].get_params()['perplexity']
+
+    def get_perplexity(app):
+        try:
+            return app.get_dimensionality_reduction_techniques()[-1].get_params()['perplexity']
+        except IndexError:
+            return np.nan
+
     df_raw = compare_approaches(
         approaches=approaches,
         iterations=ITERATIONS,
-        get_info=lambda app: f"perplexity: {get_perplexity(app)}"
+        get_info=lambda app: f"perplexity: {get_perplexity(app)}" if get_perplexity(app) != np.nan else "Original Mode"
     )
     # Export the raw data
     df_raw.to_pickle(HEATMAPS_DATA_RAW)
