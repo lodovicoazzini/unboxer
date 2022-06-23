@@ -43,7 +43,7 @@ def mask_noise(image: np.ndarray, threshold: float = None, normalize: bool = Tru
     # Filter the lower values based on the elbow point of the activations
     if threshold is None:
         hist_data, hist_idxs = np.histogram(processed, bins=10 ** 2)
-        elbow_point, fig, ax = get_elbow_point(hist_data, smoothing=10 ** 3, plot=False)
+        elbow_point = get_elbow_point(hist_data, smoothing=10 ** 3, plot=False)
         threshold = hist_idxs[np.argmin(abs(hist_data - elbow_point))]
     processed = np.ma.masked_less_equal(processed, threshold).filled(fill_value)
     return processed
