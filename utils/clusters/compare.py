@@ -29,12 +29,11 @@ def compare_approaches(
         clustering_technique = approach.get_clustering_technique()
         dimensionality_reduction_techniques = approach.get_dimensionality_reduction_techniques()
 
-        # Generate the contributions
-        contributions_start = time.time()
-        contributions = approach.generate_contributions()
-        contributions_time = time.time() - contributions_start
-
         def execution(_):
+            # Generate the contributions
+            contributions_start = time.time()
+            contributions = approach.generate_contributions()
+            contributions_time = time.time() - contributions_start
             # Cluster the contributions
             cluster_start = time.time()
             try:
