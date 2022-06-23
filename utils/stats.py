@@ -1,10 +1,13 @@
 import math
+import multiprocessing
+from itertools import combinations
 
 import numpy as np
 import pandas as pd
 from cliffs_delta import cliffs_delta
 from pingouin import compute_effsize
 from scipy.stats import shapiro, ttest_ind, mannwhitneyu
+from tqdm import tqdm
 
 from utils.general import show_progress
 
@@ -62,45 +65,19 @@ def weight_value(value: float, weight: float, max_weight: float) -> float:
     return value * math.log((math.e - 1) * weight / max_weight + 1)
 
 
-def compute_comparison_matrix(
-        values: list,
-        index: list,
-        metric: callable,
-        remove_diagonal: bool = False,
-        show_progress_bar: bool = False
-):
-    # Initialize the matrix to 0
-    num_clusters = len(values)
-    matrix = np.zeros(shape=(num_clusters, num_clusters))
-
-    # Compute the values above the diagonal
-    def execution(row):
-        for col in range(row, num_clusters):
-            lhs, rhs = values[row], values[col]
-            matrix[row][col] = metric(lhs, rhs)
-
+def compute_comparison_matrix(values: list, metric: callable, show_progress_bar: bool = False):
+    # Compute all the combinations of values
+    pairs = list(combinations(values, 2))
+    # Show the progress bar
     if show_progress_bar:
-        show_progress(execution=execution, iterable=range(0, num_clusters))
-    else:
-        for row_idx in range(0, num_clusters):
-            execution(row_idx)
-
-    # Mirror on the diagonal to complete the rest of the matrix
-    matrix = matrix + matrix.T
-    matrix[np.diag_indices_from(matrix)] /= 2
-
-    # Prepare the data for the image
-    matrix_df = pd.DataFrame(
-        matrix,
-        columns=index,
-        index=index
-    )
-    # Find the average value for each cell
-    matrix_df = matrix_df.groupby(matrix_df.columns, axis=1).mean()
-    matrix_df = matrix_df.groupby(matrix_df.index, axis=0).mean()
-
-    # Remove the values on the diagonal
-    if remove_diagonal:
-        np.fill_diagonal(matrix_df.values, np.nan)
-
-    return matrix_df.values
+        pairs = tqdm(pairs, total=len(pairs))
+    # Create the pool of processes and use it to compute the distances
+    pool = multiprocessing.Pool()
+    distances = pool.map(metric, pairs)
+    # Initialize the distance matrix to 0
+    matrix = np.zeros(len(values), len(values))
+    # Set the values of the upper triangular matrix to the distances
+    matrix[np.triu_indices_from(matrix, 1)] = distances
+    # Complete the matrix by transposing it
+    matrix = matrix + np.transpose(matrix)
+    return matrix

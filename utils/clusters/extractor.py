@@ -56,12 +56,7 @@ def get_central_elements(
     Get the centroid and the closest elements in the cluster
     """
     # Compute the distance matrix
-    dist_matrix = compute_comparison_matrix(
-        values=cluster_elements,
-        index=np.arange(len(global_values.mask_label))[cluster_idxs],
-        metric=metric,
-        remove_diagonal=True
-    )
+    dist_matrix = compute_comparison_matrix(values=cluster_elements, metric=metric)
     # Find the centroid of the cluster as the element with the least sum of the distances from the others
     cluster_idxs = np.arange(len(global_values.mask_label))[cluster_idxs]
     medoid_idx = np.argmin(np.apply_along_axis(np.nansum, axis=0, arr=dist_matrix))

@@ -34,7 +34,7 @@ class ClusteringMode(metaclass=abc.ABCMeta):
         raise NotImplementedError()
 
     def get_clustering_technique(self):
-        return self.__clustering_technique()
+        return self.__clustering_technique
 
     def get_dimensionality_reduction_techniques(self):
         return self.__dimensionality_reduction_techniques
@@ -132,15 +132,14 @@ class OriginalMode(ClusteringMode):
 
     def cluster_contributions(self, contributions: np.ndarray) -> tuple:
         # Compute the similarity matrix for the contributions
-        similarity_matrix = compute_comparison_matrix(
-            list(contributions),
-            index=[str(idx) for idx in range(len(contributions))],
-            metric=IMAGES_SIMILARITY_METRIC,
-            show_progress_bar=False
-        )
+        similarity_matrix = compute_comparison_matrix(list(contributions), metric=IMAGES_SIMILARITY_METRIC,
+                                                      show_progress_bar=True)
         # Cluster the contributions using the similarity matrix
         clusters = self.get_clustering_technique()(affinity='precomputed').fit_predict(similarity_matrix)
         # Compute the silhouette for the clusters
-        score = silhouette_score(1 - similarity_matrix, clusters, metric='precomputed')
-        
+        try:
+            score = silhouette_score(1 - similarity_matrix, clusters, metric='precomputed')
+        except ValueError:
+            score = np.nan
+
         return clusters, np.nan, score

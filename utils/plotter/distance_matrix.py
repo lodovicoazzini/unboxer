@@ -31,13 +31,7 @@ def show_comparison_matrix(
     """
 
     # Get the distance matrix
-    matrix = compute_comparison_matrix(
-        values=values,
-        index=index,
-        metric=metric,
-        remove_diagonal=remove_diagonal,
-        show_progress_bar=show_progress_bar
-    )
+    matrix = compute_comparison_matrix(values=values, metric=metric, show_progress_bar=show_progress_bar)
 
     #  Show the image
     fig_size = len(matrix)
