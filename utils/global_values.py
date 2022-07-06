@@ -8,8 +8,9 @@ from config.config_data import EXPECTED_LABEL, DATASET_LOADER, USE_RGB
 from config.config_dirs import MODEL
 from utils.dataset import get_train_test_data, get_data_masks
 
-# Ignore warnings from tensorflow
+# Ignore warnings
 warnings.filterwarnings('ignore')
+tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
 
 # Get the train and test data and labels
 (train_data, train_labels), (test_data, test_labels) = get_train_test_data(
@@ -24,7 +25,11 @@ train_data_gs, test_data_gs = (
 # Get the classifier
 classifier = tf.keras.models.load_model(MODEL)
 # Get the predictions
-predictions = classifier.predict(test_data).argmax(axis=-1)
+try:
+    predictions = classifier.predict(test_data).argmax(axis=-1)
+except ValueError:
+    # The model expects grayscale images
+    predictions = classifier.predict(test_data_gs).argmax(axis=-1)
 predictions_cat = to_categorical(predictions)
 # Get the mask for the data
 mask_miss, mask_label = get_data_masks(
