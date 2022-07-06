@@ -1,7 +1,6 @@
 import math
 import os.path
 import shutil
-from itertools import combinations
 
 import numpy as np
 import pandas as pd
@@ -16,7 +15,6 @@ from utils import global_values
 from utils.clusters.extractor import get_labels_purity, get_central_elements
 from utils.clusters.postprocessing import get_misclassified_items
 from utils.general import save_figure
-from utils.images.postprocessing import combine_images
 from utils.lists.processor import weight_values
 from utils.plotter.visualize import visualize_cluster_images
 
@@ -37,7 +35,25 @@ def export_clusters_sample_images():
 
     # Iterate over the approaches
     df = df.set_index('approach')
-    df = df.loc[HUMAN_EVALUATION_APPROACHES]
+    approaches_df = []
+    for approach in HUMAN_EVALUATION_APPROACHES:
+        try:
+            approaches_df.append(df.loc[[approach]])
+        except KeyError:
+            continue
+    if len(approaches_df) < len(HUMAN_EVALUATION_APPROACHES):
+        # Sample to reach the same length
+        remaining = list(set(df.index) - set(HUMAN_EVALUATION_APPROACHES))
+        approaches_df = [
+            df.loc[[approach]]
+            for approach
+            in np.random.choice(
+                remaining,
+                min(len(HUMAN_EVALUATION_APPROACHES) - len(approaches_df), len(remaining)),
+                replace=False
+            )
+        ]
+    df = pd.concat(approaches_df, axis=0)
     approaches = df.index.values
 
     for approach in tqdm(approaches, desc='Collecting the data for the approaches'):
@@ -85,17 +101,17 @@ def export_clusters_sample_images():
                 labels='auto'
             )
             plt.close(fig)
-            save_figure(fig, os.path.join(__BASE_DIR, approach, str(idx)))
-
-        # Combine the images for the approach
-        approach_path = os.path.join(__BASE_DIR, approach)
-        images_paths = [os.path.join(approach_path, img_path) for img_path in os.listdir(approach_path)]
-        # Get all the combinations of images
-        images_paths_combinations = list(combinations(images_paths, 2))
-
-        for idx, t in enumerate(images_paths_combinations):
-            lhs_path, rhs_path = t
-            fig, ax = combine_images(lhs_path, rhs_path)
-            ax[0].set_title('First cluster'), ax[1].set_title('Second cluster')
-            plt.tight_layout()
             save_figure(fig, os.path.join(__BASE_DIR, f'{approach}_{idx}'))
+
+        # # Combine the images for the approach
+        # approach_path = os.path.join(__BASE_DIR, approach)
+        # images_paths = [os.path.join(approach_path, img_path) for img_path in os.listdir(approach_path)]
+        # # Get all the combinations of images
+        # images_paths_combinations = list(combinations(images_paths, 2))
+        #
+        # for idx, t in enumerate(images_paths_combinations):
+        #     lhs_path, rhs_path = t
+        #     fig, ax = combine_images(lhs_path, rhs_path)
+        #     ax[0].set_title('First cluster'), ax[1].set_title('Second cluster')
+        #     plt.tight_layout()
+        #     save_figure(fig, os.path.join(__BASE_DIR, f'{approach}_{idx}'))
