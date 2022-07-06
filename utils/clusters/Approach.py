@@ -53,10 +53,14 @@ class Approach(metaclass=abc.ABCMeta):
             contributions = self.__explainer.explain(global_values.test_data[mask], global_values.predictions_cat[mask])
         except ValueError:
             # The explainer expects grayscale images
-            contributions = self.__explainer.explain(
-                global_values.test_data_gs[mask],
-                global_values.predictions_cat[mask]
-            )
+            try:
+                contributions = self.__explainer.explain(
+                    global_values.test_data_gs[mask],
+                    global_values.predictions_cat[mask]
+                )
+            except ValueError:
+                # The explainer doesn't work with grayscale images
+                return np.array([])
         # Convert the contributions to grayscale
         try:
             contributions = np.squeeze(tf.image.rgb_to_grayscale(contributions).numpy())

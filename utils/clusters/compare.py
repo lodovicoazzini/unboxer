@@ -33,6 +33,9 @@ def compare_approaches(
             contributions_start = time.time()
             contributions = approach.generate_contributions()
             contributions_time = time.time() - contributions_start
+            if len(contributions) == 0:
+                # Impossible to generate the contributions -> skip
+                continue
             # Cluster the contributions
             cluster_start = time.time()
             try:
