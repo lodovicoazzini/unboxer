@@ -18,6 +18,13 @@ BASE_DIR = f'../out/heatmaps'
 APPROACHES = [OriginalMode, LocalLatentMode, GlobalLatentMode]
 
 
+def get_perplexity(app):
+    try:
+        return app.get_dimensionality_reduction_techniques()[-1].get_params()['perplexity']
+    except IndexError:
+        return np.nan
+
+
 def main():
     # Ignore warnings from tensorflow
     warnings.filterwarnings('ignore')
@@ -78,13 +85,6 @@ def main():
 
     # Collect the data for the approaches
     print('Collecting the data for the approaches ...')
-
-    def get_perplexity(app):
-        try:
-            return app.get_dimensionality_reduction_techniques()[-1].get_params()['perplexity']
-        except IndexError:
-            return np.nan
-
     df_raw = compare_approaches(
         approaches=approaches,
         iterations=ITERATIONS,
