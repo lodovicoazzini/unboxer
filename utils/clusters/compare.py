@@ -23,7 +23,8 @@ def compare_approaches(
     """
     # Iterate over the approaches in the list
     data = []
-    for idx, approach in tqdm(list(enumerate(approaches)), 'Comparing the approaches'):
+    for idx, approach in (bar := tqdm(list(enumerate(approaches)))):
+        bar.set_description(f'Comparing the approaches ({approach})')
         # Extract some information about the current approach
         explainer = approach.get_explainer()
         clustering_technique = approach.get_clustering_technique()

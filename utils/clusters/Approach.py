@@ -71,6 +71,10 @@ class Approach(metaclass=abc.ABCMeta):
             contributions = np.ma.masked_less(np.squeeze(contributions), 0).filled(0)
         return contributions
 
+    def __str__(self):
+        params = [technique.get_params().get('perplexity') for technique in self.__dimensionality_reduction_techniques]
+        return f'{self.__explainer.__class__.__name__} - perplexity = {params}'
+
 
 class LocalLatentMode(Approach):
 
