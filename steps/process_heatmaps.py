@@ -7,14 +7,15 @@ import pandas as pd
 
 from config.config_dirs import BEST_CONFIGURATIONS, HEATMAPS_DATA_RAW, \
     HEATMAPS_DATA
-from config.config_heatmaps import HEATMAPS_PROCESS_MODE, EXPLAINERS, DIMENSIONALITY_REDUCTION_TECHNIQUES, \
-    CLUSTERING_TECHNIQUE, ITERATIONS
+from config.config_heatmaps import APPROACH, EXPLAINERS, DIMENSIONALITY_REDUCTION_TECHNIQUES, ITERATIONS
 from utils import global_values
-from utils.clusters.ClusteringMode import OriginalMode
+from utils.clusters.Approach import OriginalMode, GlobalLatentMode, LocalLatentMode
 from utils.clusters.compare import compare_approaches
 from utils.dataframes.sample import sample_highest_score
 
 BASE_DIR = f'../out/heatmaps'
+
+APPROACHES = [OriginalMode, LocalLatentMode, GlobalLatentMode]
 
 
 def main():
@@ -23,15 +24,17 @@ def main():
 
     # Collect the approaches to use
     print('Collecting the approaches ...')
+    # Select the approach from the configurations
+    approach = APPROACHES[APPROACH]
     # If the processing mode is the original one, or there are no best logs -> try all the combinations
-    if not os.path.exists(BEST_CONFIGURATIONS) or HEATMAPS_PROCESS_MODE is OriginalMode:
+    if not os.path.exists(BEST_CONFIGURATIONS) or approach is OriginalMode:
         # Select the dimensionality reduction techniques based on the approach
         dimensionality_reduction_techniques = [[] for _ in EXPLAINERS] \
-            if HEATMAPS_PROCESS_MODE is OriginalMode \
+            if approach is OriginalMode \
             else DIMENSIONALITY_REDUCTION_TECHNIQUES
         # Collect the approaches
         approaches = [
-            HEATMAPS_PROCESS_MODE(
+            approach(
                 explainer=explainer(global_values.classifier),
                 dimensionality_reduction_techniques=dimensionality_reduction_technique
             )
@@ -49,23 +52,23 @@ def main():
                 # Find the best configuration to use
                 best_config = best_configurations.loc[explainer(global_values.classifier).__class__.__name__]
                 approaches.append(
-                    HEATMAPS_PROCESS_MODE(
+                    approach(
                         explainer=explainer(global_values.classifier),
                         dimensionality_reduction_techniques=best_config['dimensionality_reduction_techniques']
                     )
                 )
             except KeyError:
                 # No best configuration for the explainer
-                if HEATMAPS_PROCESS_MODE is OriginalMode:
+                if approach is OriginalMode:
                     approaches.append(
-                        HEATMAPS_PROCESS_MODE(
+                        approach(
                             explainer=explainer(global_values.classifier),
                             dimensionality_reduction_techniques=[]
                         )
                     )
                 else:
                     for approach in [
-                        HEATMAPS_PROCESS_MODE(
+                        approach(
                             explainer=explainer(global_values.classifier),
                             dimensionality_reduction_techniques=dim_red_techs
                         )
