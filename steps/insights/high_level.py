@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 from clusim.clustering import Clustering
 from sklearn.manifold import TSNE
+from tqdm import tqdm
 
 from config.config_dirs import FEATUREMAPS_DATA
 from config.config_featuremaps import FEATUREMAPS_CLUSTERING_MODE
@@ -9,7 +10,7 @@ from config.config_general import CLUSTERS_SIMILARITY_METRIC, CLUSTERS_SORT_METR
 from config.config_outputs import MAX_LABELS
 from utils import global_values
 from utils.clusters.postprocessing import get_sorted_clusters
-from utils.general import save_figure, show_progress
+from utils.general import save_figure
 from utils.plotter.distance_matrix import show_comparison_matrix
 from utils.plotter.visualize import visualize_clusters_projections, visualize_clusters_images
 
@@ -64,19 +65,14 @@ def featuremaps_clusters_projections():
             -1
         )
     )
-
-    print('Exporting the clusters projections ...')
     # Show the clusters projections for each feature combination
     zipped = list(zip(df['complete_approach'].values, clusters))
-
-    def execution(feature_combination, cluster_configuration):
+    for feature_combination, cluster_configuration in tqdm(zipped, desc='Exporting the clusters projections'):
         clusters_membership = np.array(cluster_configuration.to_membership_list())
         # Show the clusters projections
         fig, ax = visualize_clusters_projections(projections=projections, cluster_list=clusters_membership)
         fig.suptitle(f'Clusters projections for the features {feature_combination}')
         save_figure(fig, f'{BASE_DIR}/clusters_projections_{feature_combination}')
-
-    show_progress(execution=execution, iterable=zipped)
 
 
 def featuremaps_clusters_images():
@@ -88,11 +84,9 @@ def featuremaps_clusters_images():
         axis=1
     )
 
-    print('Exporting the clusters sample images ...')
     # Show the clusters projections for each feature combination
     tuples = df[['complete_approach', 'clusters']].values
-
-    def execution(approach, clusters):
+    for approach, clusters in tqdm(tuples, desc='Exporting the clusters sample images'):
         # Get the mask for the clusters containing misclassified elements of the selected label
         clusters_membership = np.array(Clustering().from_cluster_list(clusters).to_membership_list())
         labels_contains_miss = np.unique(clusters_membership[global_values.mask_miss_label])
@@ -126,5 +120,3 @@ def featuremaps_clusters_images():
         )
         fig.suptitle(f'Misclassified classified items for {approach}')
         save_figure(fig, f'{BASE_DIR}/misclassified_samples_{approach}')
-
-    show_progress(execution=execution, iterable=tuples)

@@ -4,6 +4,7 @@ import shutil
 import numpy as np
 import pandas as pd
 from matplotlib import pyplot as plt
+from tqdm import tqdm
 
 from config.config_dirs import MERGED_DATA_SAMPLED
 from config.config_outputs import NUM_IMAGES_PER_CLUSTER
@@ -11,7 +12,7 @@ from steps.human_evaluation.helpers import sample_clusters
 from utils import global_values
 from utils.clusters.extractor import get_labels_purity
 from utils.clusters.postprocessing import get_misclassified_items
-from utils.general import save_figure, show_progress
+from utils.general import save_figure
 from utils.images.postprocessing import add_grid
 from utils.lists.processor import get_balanced_samples
 from utils.plotter.visualize import visualize_cluster_images
@@ -41,7 +42,7 @@ def export_clusters_sample_images():
     titles = [f'Predicted: {label}' for label in global_values.predictions[global_values.mask_label]]
     titles = np.array(titles)
 
-    def execution(approach):
+    for approach in tqdm(approaches, desc='Exporting the cluster samples for the approaches'):
         # Get the clusters for the selected approach
         clusters, contributions = df.loc[approach][['clusters', 'contributions']]
         clusters = np.array(clusters, dtype=list)
@@ -86,9 +87,6 @@ def export_clusters_sample_images():
                 low_level_paths.append(sub_path)
             else:
                 high_leval_paths.append(sub_path)
-
-    message = lambda approach: f'{approach}'
-    show_progress(execution=execution, iterable=approaches, message=message)
 
     # Save teh image path in the csv file
     with open(f'logs/human_evaluation_sufficiency_images.csv', mode='w') as file:

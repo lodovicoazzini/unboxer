@@ -4,13 +4,14 @@ import shutil
 import numpy as np
 import pandas as pd
 from matplotlib import pyplot as plt
+from tqdm import tqdm
 
 from config.config_dirs import MERGED_DATA_SAMPLED
 from config.config_outputs import NUM_IMAGES_PER_CLUSTER
 from steps.human_evaluation.helpers import sample_clusters
 from utils import global_values
 from utils.clusters.extractor import get_misses_count, get_labels_purity
-from utils.general import save_figure, show_progress
+from utils.general import save_figure
 from utils.lists.processor import get_balanced_samples
 from utils.plotter.visualize import visualize_cluster_images
 
@@ -37,7 +38,7 @@ def export_clusters_sample_images():
 
     with open('logs/human_evaluation_understandability_images.csv', mode='w') as file:
 
-        def execution(approach):
+        for approach in tqdm(approaches, desc='Exporting the clusters samples for the approaches'):
             # Get the clusters for the selected approach
             clusters, contributions = df.loc[approach][['clusters', 'contributions']]
             clusters = np.array(clusters, dtype=list)
@@ -84,6 +85,3 @@ def export_clusters_sample_images():
                 save_figure(fig, f'out/{sub_path}')
                 # Save teh image path in the csv file
                 file.write(f'{sub_path}\n')
-
-        message = lambda approach: f'{approach}'
-        show_progress(execution=execution, iterable=approaches, message=message)

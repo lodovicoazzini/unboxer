@@ -3,13 +3,14 @@ import pandas as pd
 import seaborn as sns
 from clusim.clustering import Clustering
 from matplotlib import pyplot as plt
+from tqdm import tqdm
 
 from config.config_dirs import HEATMAPS_DATA, HEATMAPS_DATA_RAW
 from config.config_general import CLUSTERS_SORT_METRIC, CLUSTERS_SIMILARITY_METRIC
 from utils import global_values
 from utils.clusters.postprocessing import get_sorted_clusters
 from utils.dataframes.sample import sample_most_popular
-from utils.general import save_figure, show_progress
+from utils.general import save_figure
 from utils.plotter.distance_matrix import show_comparison_matrix
 from utils.plotter.visualize import visualize_clusters_projections, visualize_clusters_images
 
@@ -17,7 +18,6 @@ from utils.plotter.visualize import visualize_clusters_projections, visualize_cl
 def heatmaps_distance_matrix():
     # Read the data
     df = pd.read_pickle(HEATMAPS_DATA)
-
     print('Computing the distance matrix for the heatmaps ...')
     # Remove the configurations with only one clusters
     df['num_clusters'] = df['clusters'].apply(len)
@@ -36,14 +36,11 @@ def heatmaps_distance_matrix():
 def heatmaps_clusters_projections():
     # Read the data
     df = pd.read_pickle(HEATMAPS_DATA)
-
     # Get the most popular configurations
     df = sample_most_popular(df)
     # Iterate through the explainers
-    print('Exporting the clusters projections ...')
     approaches = df.index.unique()
-
-    def execution(approach):
+    for approach in tqdm(approaches, desc='Exporting the clusters projections'):
         # Get the best configuration for the explainer
         pick_config = df.loc[approach]
         clusters, projections, contributions = pick_config[[
@@ -58,19 +55,14 @@ def heatmaps_clusters_projections():
         ax.set_title(f'{approach} clusters projections')
         save_figure(fig, f'out/low_level/{approach}/clusters_projections')
 
-    show_progress(execution=execution, iterable=approaches)
-
 
 def heatmaps_clusters_images():
     # Read the data
     df = pd.read_pickle(HEATMAPS_DATA)
-
     # Get the most popular configurations
     df = sample_most_popular(df)
-    print('Exporting the clusters sample images ...')
     approaches = df.index.unique()
-
-    def execution(approach):
+    for approach in tqdm(approaches, desc='Exporting the clusters sample images'):
         # Get the best configuration for the explainer
         pick_config = df.loc[approach]
         clusters, projections, contributions = pick_config[[
@@ -113,18 +105,13 @@ def heatmaps_clusters_images():
         )
         save_figure(fig, f'out/low_level/{approach}/clusters_misclassified_images')
 
-    show_progress(execution=execution, iterable=approaches)
-
 
 def heatmaps_silhouette_by_perplexity():
     # Read the data
     df = pd.read_pickle(HEATMAPS_DATA_RAW)
-
-    print('Showing the distribution of the silhouette score by perplexity for the low-level approaches ...')
     # Iterate through the explainers
     approaches = df['approach'].unique()
-
-    def execution(explainer):
+    for explainer in tqdm(approaches, desc='Showing the distribution of the silhouette score'):
         # Filter the dataframe for the explainer
         explainer_df = df[df['approach'] == explainer]
         # Show the distribution of the silhouette by perplexity
@@ -133,5 +120,3 @@ def heatmaps_silhouette_by_perplexity():
             f'{explainer} silhouette score by perplexity'
         )
         save_figure(fig, f'out/low_level/{explainer}/silhouette_by_perplexity')
-
-    show_progress(execution=execution, iterable=approaches)

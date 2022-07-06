@@ -4,15 +4,15 @@ from typing import Callable
 import numpy as np
 import pandas as pd
 from clusim.clustering import Clustering
+from tqdm import tqdm, trange
 
-from utils.clusters.ClusteringMode import ClusteringMode
-from utils.general import show_progress
+from utils.clusters.Approach import Approach
 
 
 def compare_approaches(
         approaches: list,
         iterations: int,
-        get_info: Callable[[ClusteringMode], str] = None
+        get_info: Callable[[Approach], str] = None
 ) -> pd.DataFrame:
     """
     Compare a list of approaches and return the collected data
@@ -23,13 +23,12 @@ def compare_approaches(
     """
     # Iterate over the approaches in the list
     data = []
-    for idx, approach in enumerate(approaches):
+    for idx, approach in tqdm(list(enumerate(approaches)), 'Comparing the approaches'):
         # Extract some information about the current approach
         explainer = approach.get_explainer()
         clustering_technique = approach.get_clustering_technique()
         dimensionality_reduction_techniques = approach.get_dimensionality_reduction_techniques()
-
-        def execution(_):
+        for _ in trange(iterations, desc='Iterating', leave=False):
             # Generate the contributions
             contributions_start = time.time()
             contributions = approach.generate_contributions()
@@ -56,10 +55,5 @@ def compare_approaches(
                 'time_contributions': round(contributions_time, 5),
                 'time_clustering': round(cluster_time, 5)
             })
-
-        message = f'{explainer.__class__.__name__} ({get_info(approach)})'
-
-        show_progress(execution=execution, iterable=range(iterations), message=message)
-
     df = pd.DataFrame(data)
     return df
