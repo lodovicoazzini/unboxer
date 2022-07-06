@@ -5,8 +5,8 @@ from tensorflow.keras import layers
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.datasets import mnist
 
-from config.config_data import RGB_IMAGES
-from config.config_dirs import MODEL, PREDICTIONS
+from config.config_data import USE_RGB
+from config.config_dirs import MODEL
 from utils.dataset import get_train_test_data
 
 
@@ -43,7 +43,7 @@ def create_model():
     mnist_loader = lambda: mnist.load_data()
     (train_data, train_labels), (test_data, test_labels) = get_train_test_data(
         dataset_loader=mnist_loader,
-        rgb=RGB_IMAGES,
+        rgb=USE_RGB,
         verbose=True
     )
     train_labels_cat, test_labels_cat = to_categorical(train_labels, 10), to_categorical(test_labels, 10)
