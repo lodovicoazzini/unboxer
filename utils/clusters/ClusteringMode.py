@@ -5,16 +5,17 @@ import tensorflow as tf
 from sklearn.metrics import silhouette_score
 
 from config.config_general import IMAGES_SIMILARITY_METRIC
+from config.config_heatmaps import CLUSTERING_TECHNIQUE
 from utils import global_values
 from utils.stats import compute_comparison_matrix
 
 
 class ClusteringMode(metaclass=abc.ABCMeta):
     @abc.abstractmethod
-    def __init__(self, explainer, dimensionality_reduction_techniques, clustering_technique):
+    def __init__(self, explainer, dimensionality_reduction_techniques):
         self.__explainer = explainer
         self.__dimensionality_reduction_techniques = dimensionality_reduction_techniques
-        self.__clustering_technique = clustering_technique
+        self.__clustering_technique = CLUSTERING_TECHNIQUE
 
     @abc.abstractmethod
     def generate_contributions(self) -> np.ndarray:
@@ -63,8 +64,8 @@ class ClusteringMode(metaclass=abc.ABCMeta):
 
 class LocalLatentMode(ClusteringMode):
 
-    def __init__(self, explainer, dimensionality_reduction_techniques, clustering_technique):
-        super(LocalLatentMode, self).__init__(explainer, dimensionality_reduction_techniques, clustering_technique)
+    def __init__(self, explainer, dimensionality_reduction_techniques):
+        super(LocalLatentMode, self).__init__(explainer, dimensionality_reduction_techniques)
 
     def generate_contributions(self):
         # Generate the contributions for the filtered data
@@ -91,8 +92,8 @@ class LocalLatentMode(ClusteringMode):
 
 class GlobalLatentMode(ClusteringMode):
 
-    def __init__(self, explainer, dimensionality_reduction_techniques, clustering_technique):
-        super(GlobalLatentMode, self).__init__(explainer, dimensionality_reduction_techniques, clustering_technique)
+    def __init__(self, explainer, dimensionality_reduction_techniques):
+        super(GlobalLatentMode, self).__init__(explainer, dimensionality_reduction_techniques)
 
     def generate_contributions(self):
         # Generate the contributions for the whole data
@@ -120,8 +121,8 @@ class GlobalLatentMode(ClusteringMode):
 
 class OriginalMode(ClusteringMode):
 
-    def __init__(self, explainer, dimensionality_reduction_techniques, clustering_technique):
-        super(OriginalMode, self).__init__(explainer, dimensionality_reduction_techniques, clustering_technique)
+    def __init__(self, explainer, dimensionality_reduction_techniques):
+        super(OriginalMode, self).__init__(explainer, dimensionality_reduction_techniques)
 
     def generate_contributions(self):
         # Generate the contributions for the filtered data
@@ -136,7 +137,7 @@ class OriginalMode(ClusteringMode):
             list(contributions),
             metric=IMAGES_SIMILARITY_METRIC,
             show_progress_bar=True,
-            multi_process=True
+            multi_process=False
         )
         # Cluster the contributions using the similarity matrix
         clusters = self.get_clustering_technique()(affinity='precomputed').fit_predict(similarity_matrix)

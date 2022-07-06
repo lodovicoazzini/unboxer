@@ -18,31 +18,27 @@ BASE_DIR = f'../out/heatmaps'
 
 
 def main():
+    # Ignore warnings from tensorflow
     warnings.filterwarnings('ignore')
 
     # Collect the approaches to use
     print('Collecting the approaches ...')
-    if not os.path.exists(BEST_CONFIGURATIONS):
-        # No best configuration for the explainer
-        if HEATMAPS_PROCESS_MODE is OriginalMode:
-            approaches = [
-                HEATMAPS_PROCESS_MODE(
-                    explainer=explainer(global_values.classifier),
-                    dimensionality_reduction_techniques=[],
-                    clustering_technique=CLUSTERING_TECHNIQUE
-                )
-                for explainer in EXPLAINERS
-            ]
-        else:
-            approaches = [
-                HEATMAPS_PROCESS_MODE(
-                    explainer=explainer(global_values.classifier),
-                    dimensionality_reduction_techniques=dimensionality_reduction_technique,
-                    clustering_technique=CLUSTERING_TECHNIQUE
-                )
-                for explainer, dimensionality_reduction_technique
-                in product(EXPLAINERS, DIMENSIONALITY_REDUCTION_TECHNIQUES)
-            ]
+    # If the processing mode is the original one, or there are no best logs -> try all the combinations
+    if not os.path.exists(BEST_CONFIGURATIONS) or HEATMAPS_PROCESS_MODE is OriginalMode:
+        # Select the dimensionality reduction techniques based on the approach
+        dimensionality_reduction_techniques = [[] for _ in EXPLAINERS] \
+            if HEATMAPS_PROCESS_MODE is OriginalMode \
+            else DIMENSIONALITY_REDUCTION_TECHNIQUES
+        # Collect the approaches
+        approaches = [
+            HEATMAPS_PROCESS_MODE(
+                explainer=explainer(global_values.classifier),
+                dimensionality_reduction_techniques=dimensionality_reduction_technique
+            )
+            for explainer, dimensionality_reduction_technique
+            in product(EXPLAINERS, dimensionality_reduction_techniques)
+        ]
+    # The processing mode is not original and there is a log -> read the configurations from the log
     else:
         # Read the data about the best configurations
         best_configurations = pd.read_pickle(BEST_CONFIGURATIONS).set_index('approach')
@@ -55,8 +51,7 @@ def main():
                 approaches.append(
                     HEATMAPS_PROCESS_MODE(
                         explainer=explainer(global_values.classifier),
-                        dimensionality_reduction_techniques=best_config['dimensionality_reduction_techniques'],
-                        clustering_technique=CLUSTERING_TECHNIQUE
+                        dimensionality_reduction_techniques=best_config['dimensionality_reduction_techniques']
                     )
                 )
             except KeyError:
@@ -65,16 +60,14 @@ def main():
                     approaches.append(
                         HEATMAPS_PROCESS_MODE(
                             explainer=explainer(global_values.classifier),
-                            dimensionality_reduction_techniques=[],
-                            clustering_technique=CLUSTERING_TECHNIQUE
+                            dimensionality_reduction_techniques=[]
                         )
                     )
                 else:
                     for approach in [
                         HEATMAPS_PROCESS_MODE(
                             explainer=explainer(global_values.classifier),
-                            dimensionality_reduction_techniques=dim_red_techs,
-                            clustering_technique=CLUSTERING_TECHNIQUE
+                            dimensionality_reduction_techniques=dim_red_techs
                         )
                         for explainer, dim_red_techs in product([explainer], DIMENSIONALITY_REDUCTION_TECHNIQUES)
                     ]:
