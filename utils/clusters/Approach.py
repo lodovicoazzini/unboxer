@@ -10,7 +10,7 @@ from utils import global_values
 from utils.stats import compute_comparison_matrix
 
 
-class ClusteringMode(metaclass=abc.ABCMeta):
+class Approach(metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def __init__(self, explainer, dimensionality_reduction_techniques):
         self.__explainer = explainer
@@ -45,12 +45,18 @@ class ClusteringMode(metaclass=abc.ABCMeta):
 
     def _generate_contributions(
             self,
-            data: np.ndarray,
-            predictions: np.ndarray,
+            mask: np.ndarray = np.ones(len(global_values.test_data)),
             only_positive: bool = True
     ) -> np.ndarray:
         # Generate the contributions
-        contributions = self.__explainer.explain(data, predictions)
+        try:
+            contributions = self.__explainer.explain(global_values.test_data[mask], global_values.predictions_cat[mask])
+        except ValueError:
+            # The explainer expects grayscale images
+            contributions = self.__explainer.explain(
+                global_values.test_data_gs[mask],
+                global_values.predictions_cat[mask]
+            )
         # Convert the contributions to grayscale
         try:
             contributions = np.squeeze(tf.image.rgb_to_grayscale(contributions).numpy())
@@ -62,17 +68,14 @@ class ClusteringMode(metaclass=abc.ABCMeta):
         return contributions
 
 
-class LocalLatentMode(ClusteringMode):
+class LocalLatentMode(Approach):
 
     def __init__(self, explainer, dimensionality_reduction_techniques):
         super(LocalLatentMode, self).__init__(explainer, dimensionality_reduction_techniques)
 
     def generate_contributions(self):
         # Generate the contributions for the filtered data
-        return super(LocalLatentMode, self)._generate_contributions(
-            global_values.test_data[global_values.mask_label],
-            global_values.predictions_cat[global_values.mask_label]
-        )
+        return super(LocalLatentMode, self)._generate_contributions(global_values.mask_label)
 
     def cluster_contributions(self, contributions: np.ndarray) -> tuple:
         # Flatten teh contributions and project then in the latent space
@@ -90,17 +93,14 @@ class LocalLatentMode(ClusteringMode):
         return clusters, projections, score
 
 
-class GlobalLatentMode(ClusteringMode):
+class GlobalLatentMode(Approach):
 
     def __init__(self, explainer, dimensionality_reduction_techniques):
         super(GlobalLatentMode, self).__init__(explainer, dimensionality_reduction_techniques)
 
     def generate_contributions(self):
         # Generate the contributions for the whole data
-        return super(GlobalLatentMode, self)._generate_contributions(
-            global_values.test_data,
-            global_values.predictions
-        )
+        return super(GlobalLatentMode, self)._generate_contributions()
 
     def cluster_contributions(self, contributions: np.ndarray) -> tuple:
         # Flatten the contributions and project them into the latent space
@@ -119,17 +119,14 @@ class GlobalLatentMode(ClusteringMode):
         return clusters, projections_filtered, score
 
 
-class OriginalMode(ClusteringMode):
+class OriginalMode(Approach):
 
     def __init__(self, explainer, dimensionality_reduction_techniques):
         super(OriginalMode, self).__init__(explainer, dimensionality_reduction_techniques)
 
     def generate_contributions(self):
         # Generate the contributions for the filtered data
-        return super(OriginalMode, self)._generate_contributions(
-            global_values.test_data[global_values.mask_label],
-            global_values.predictions_cat[global_values.mask_label]
-        )
+        return super(OriginalMode, self)._generate_contributions(global_values.mask_label)
 
     def cluster_contributions(self, contributions: np.ndarray) -> tuple:
         # Compute the similarity matrix for the contributions
