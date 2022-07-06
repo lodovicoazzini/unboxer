@@ -7,7 +7,6 @@ import pandas as pd
 from matplotlib import pyplot as plt
 from tqdm import tqdm
 
-from config.config_dirs import MERGED_DATA_SAMPLED
 from config.config_general import HUMAN_EVALUATION_APPROACHES, IMAGES_SIMILARITY_METRIC
 from config.config_outputs import NUM_IMAGES_PER_CLUSTER, NUM_SEPARABILITY_CLUSTERS
 from steps.human_evaluation.helpers import sample_clusters
@@ -22,11 +21,7 @@ __BASE_DIR = 'out/human_evaluation/separability'
 
 
 def export_clusters_sample_images():
-    if os.path.exists(MERGED_DATA_SAMPLED):
-        df = pd.read_pickle(MERGED_DATA_SAMPLED)
-    else:
-        df = sample_clusters()
-
+    df = sample_clusters()
     # Remove the data if already there
     try:
         shutil.rmtree(__BASE_DIR)

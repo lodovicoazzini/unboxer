@@ -1,16 +1,17 @@
-import os.path
-
 import numpy as np
 import pandas as pd
 
-from config.config_dirs import FEATUREMAPS_DATA, HEATMAPS_DATA, MERGED_DATA, MERGED_DATA_SAMPLED
+from config.config_dirs import FEATUREMAPS_DATA, HEATMAPS_DATA
 from utils import global_values
 from utils.dataframes.extractor import get_average_popularity_score
 
 
 def preprocess_featuremaps_data():
     # Read the featuremaps data
-    df = pd.read_pickle(FEATUREMAPS_DATA)
+    try:
+        df = pd.read_pickle(FEATUREMAPS_DATA)
+    except FileNotFoundError:
+        return pd.DataFrame()
     # Compute the total time
     df['time'] = df['map_time'] + df['features_extraction']
     df = df.drop(columns=['map_time', 'features_extraction'])
@@ -26,7 +27,10 @@ def preprocess_featuremaps_data():
 
 def preprocess_heatmaps_data():
     # Read the heatmaps data
-    df = pd.read_pickle(HEATMAPS_DATA)
+    try:
+        df = pd.read_pickle(HEATMAPS_DATA)
+    except ValueError:
+        return pd.DataFrame()
     # Make the naming consistent with the featuremaps
     df = df.rename(columns={'explainer': 'approach'})
     df['time'] = df['time_clustering'] + df['time_contributions']
@@ -47,7 +51,7 @@ def preprocess_data():
     misclassified_idxs = np.argwhere(global_values.mask_miss_label)
 
     # Merge the data for the featuremaps and the heatmaps
-    merged = pd.concat([featuremaps_data, heatmaps_data]).reset_index(drop=True)
+    merged = pd.concat([heatmaps_data, featuremaps_data]).reset_index(drop=True)
     # Compute additional information
     merged['num_clusters'] = merged['clusters'].apply(len)
     merged['clusters_sizes'] = merged['clusters'].apply(lambda clusters: [len(cluster) for cluster in clusters])
@@ -61,23 +65,16 @@ def preprocess_data():
         lambda misses: len([entry for entry in misses if 0 < entry < 1]) / len(misses)
     )
 
-    merged.to_pickle(MERGED_DATA)
-
     return merged
 
 
 def sample_clusters():
-    if os.path.exists(MERGED_DATA):
-        df = pd.read_pickle(MERGED_DATA)
-    else:
-        df = preprocess_data()
+    df = preprocess_data()
     # Find the average popularity  score for the configurations
     df['popularity_score'] = get_average_popularity_score(df)
     # For each approach, choose the cluster configuration with the highest popularity score
     df['rank'] = df.groupby('approach')['popularity_score'].rank(method='dense', ascending=False).astype(int)
     sampled_clusters = df[df['rank'] == 1].drop(columns='rank')
     sampled_clusters = sampled_clusters.groupby('approach').first().reset_index()
-
-    sampled_clusters.to_pickle(MERGED_DATA_SAMPLED)
 
     return sampled_clusters
