@@ -1,5 +1,6 @@
 import math
 import multiprocessing
+import os
 from itertools import combinations
 
 import numpy as np
@@ -72,10 +73,10 @@ def compute_comparison_matrix(
     pairs = list(combinations(values, 2))
     # Show the progress bar
     if show_progress_bar:
-        pairs = tqdm(pairs, desc='Computing the comparison matrix')
+        pairs = tqdm(pairs, desc='Computing the comparison matrix', total=len(pairs))
     # Create the pool of processes and use it to compute the distances
     if multi_process:
-        pool = multiprocessing.Pool()
+        pool = multiprocessing.Pool(int(os.cpu_count() / 2))
         distances = pool.map(metric, pairs)
     else:
         distances = [metric(lhs, rhs) for lhs, rhs in pairs]
