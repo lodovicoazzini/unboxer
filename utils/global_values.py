@@ -1,24 +1,20 @@
 import os
-import sys
-from typing import Callable
+import warnings
 
-import numpy as np
 import tensorflow as tf
 from keras.utils.np_utils import to_categorical
-from sklearn.manifold import TSNE
 
-from config.config_data import EXPECTED_LABEL, DATASET_LOADER, RGB_IMAGES
-from config.config_dirs import MODEL, PREDICTIONS
-from steps import create_model
+from config.config_data import EXPECTED_LABEL, DATASET_LOADER, USE_RGB
+from config.config_dirs import MODEL
 from utils.dataset import get_train_test_data, get_data_masks
 
-# Prevent printing the optimization warning from Tensorflow
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
+# Ignore warnings from tensorflow
+warnings.filterwarnings('ignore')
 
 # Get the train and test data and labels
 (train_data, train_labels), (test_data, test_labels) = get_train_test_data(
     dataset_loader=DATASET_LOADER,
-    rgb=RGB_IMAGES,
+    rgb=USE_RGB,
     verbose=False
 )
 train_data_gs, test_data_gs = (
@@ -26,15 +22,9 @@ train_data_gs, test_data_gs = (
     tf.image.rgb_to_grayscale(test_data).numpy()
 )
 # Get the classifier
-try:
-    classifier = tf.keras.models.load_model(MODEL)
-except IOError:
-    classifier = create_model.create_model()
+classifier = tf.keras.models.load_model(MODEL)
 # Get the predictions
-try:
-    predictions = np.loadtxt(PREDICTIONS)
-except FileNotFoundError:
-    predictions = create_model.generate_predictions(classifier=classifier, test_data=test_data)
+predictions = classifier.predict(test_data).argmax(axis=-1)
 predictions_cat = to_categorical(predictions)
 # Get the mask for the data
 mask_miss, mask_label = get_data_masks(

@@ -65,13 +65,3 @@ def create_model():
     classifier.save(MODEL)
 
     return classifier
-
-
-def generate_predictions(classifier, test_data):
-    print('Generating the predictions ...')
-    # Compute the predictions
-    predictions = classifier.predict(test_data).argmax(axis=-1)
-    # Save the predictions
-    np.savetxt(PREDICTIONS, predictions, delimiter=',')
-
-    return predictions
