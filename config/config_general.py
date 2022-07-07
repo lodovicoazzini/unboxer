@@ -1,5 +1,6 @@
 from typing import Callable
 
+import numpy as np
 from clusim.clusimelement import element_sim
 from clusim.clustering import Clustering
 
@@ -17,8 +18,18 @@ CLUSTERS_SORT_METRIC: Callable[[list], tuple] = lambda cluster: (
 CLUSTERS_SIMILARITY_METRIC: Callable[[Clustering, Clustering], float] = element_sim
 
 
-def IMAGES_SIMILARITY_METRIC(lhs, rhs):
-    euclidean_similarity(mask_noise(lhs), mask_noise(rhs))
+def IMAGES_SIMILARITY_METRIC(lhs, rhs, threshold: float = None, max_activation: float = None):
+    if max_activation is not None:
+        num_bins = 5
+        lhs_processed = np.digitize(lhs, np.linspace(0, max_activation, num_bins))
+        rhs_processed = np.digitize(rhs, np.linspace(0, max_activation, num_bins))
+    elif threshold is not None:
+        lhs_processed, _ = mask_noise(lhs, normalize=True, threshold=threshold)
+        rhs_processed, _ = mask_noise(rhs, normalize=True, threshold=threshold)
+    else:
+        lhs_processed = lhs
+        rhs_processed = rhs
+    return ssim(lhs_processed, rhs_processed)
 
 
 HUMAN_EVALUATION_APPROACHES = ['Lime', 'Rise', 'moves+orientation(10)_original', 'orientation+bitmaps(10)_original']
