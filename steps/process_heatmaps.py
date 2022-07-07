@@ -33,12 +33,10 @@ def main():
     print('Collecting the approaches ...')
     # Select the approach from the configurations
     approach = APPROACHES[APPROACH]
+    # Select the dimensionality reduction techniques based on the approach
+    dimensionality_reduction_techniques = [[]] if approach is OriginalMode else DIMENSIONALITY_REDUCTION_TECHNIQUES
     # If the processing mode is the original one, or there are no best logs -> try all the combinations
     if not os.path.exists(BEST_CONFIGURATIONS) or approach is OriginalMode:
-        # Select the dimensionality reduction techniques based on the approach
-        dimensionality_reduction_techniques = [[] for _ in EXPLAINERS] \
-            if approach is OriginalMode \
-            else DIMENSIONALITY_REDUCTION_TECHNIQUES
         # Collect the approaches
         approaches = [
             approach(
@@ -65,23 +63,16 @@ def main():
                     )
                 )
             except KeyError:
-                # No best configuration for the explainer
-                if approach is OriginalMode:
-                    approaches.append(
-                        approach(
-                            explainer=explainer(global_values.classifier),
-                            dimensionality_reduction_techniques=[]
-                        )
+                # Collect the approaches
+                for approach in [
+                    approach(
+                        explainer=explainer(global_values.classifier),
+                        dimensionality_reduction_techniques=dimensionality_reduction_technique
                     )
-                else:
-                    for approach in [
-                        approach(
-                            explainer=explainer(global_values.classifier),
-                            dimensionality_reduction_techniques=dim_red_techs
-                        )
-                        for explainer, dim_red_techs in product([explainer], DIMENSIONALITY_REDUCTION_TECHNIQUES)
-                    ]:
-                        approaches.append(approach)
+                    for explainer, dimensionality_reduction_technique
+                    in product(explainer, dimensionality_reduction_techniques)
+                ]:
+                    approaches.append(approach)
 
     # Collect the data for the approaches
     print('Collecting the data for the approaches ...')
