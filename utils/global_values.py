@@ -11,6 +11,7 @@ from utils.dataset import get_train_test_data, get_data_masks
 # Ignore warnings
 warnings.filterwarnings('ignore')
 tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
 # Get the train and test data and labels
 (train_data, train_labels), (test_data, test_labels) = get_train_test_data(
