@@ -46,6 +46,10 @@ def compare_approaches(
                 clusters, score, projections = [], np.nan, []
             cluster_time = time.time() - cluster_start
 
+            if len(clusters) == 0:
+                # No cluster found -> skip
+                continue
+
             # Collect the information for the run
             data.append({
                 'approach': explainer.__class__.__name__,
