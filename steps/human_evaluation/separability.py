@@ -39,7 +39,7 @@ def export_clusters_sample_images():
     if len(approaches_df) < len(HUMAN_EVALUATION_APPROACHES):
         # Sample to reach the same length
         remaining = list(set(df.index) - set(HUMAN_EVALUATION_APPROACHES))
-        approaches_df = [
+        for approach_df in [
             df.loc[[approach]]
             for approach
             in np.random.choice(
@@ -47,7 +47,8 @@ def export_clusters_sample_images():
                 min(len(HUMAN_EVALUATION_APPROACHES) - len(approaches_df), len(remaining)),
                 replace=False
             )
-        ]
+        ]:
+            approaches_df.append(approach_df)
     df = pd.concat(approaches_df, axis=0)
     approaches = df.index.values
 
