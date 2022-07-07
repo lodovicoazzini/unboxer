@@ -50,7 +50,7 @@ def mask_noise(image: np.ndarray, threshold: float = None, normalize: bool = Tru
         except ValueError:
             # Impossible to detect the threshold
             pass
-    return processed
+    return processed, threshold
 
 
 def aggregate_activations(
