@@ -4,6 +4,7 @@ from itertools import product
 
 import numpy as np
 import pandas as pd
+import tensorflow as tf
 
 from config.config_dirs import BEST_CONFIGURATIONS, HEATMAPS_DATA_RAW, \
     HEATMAPS_DATA
@@ -28,6 +29,8 @@ def get_perplexity(app):
 def main():
     # Ignore warnings from tensorflow
     warnings.filterwarnings('ignore')
+    tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
+    os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
     # Collect the approaches to use
     print('Collecting the approaches ...')
@@ -98,11 +101,12 @@ def main():
     # Export the sampled data
     df_sampled.to_pickle(HEATMAPS_DATA)
 
-    # Export the best configurations
-    best_configs_df = df_sampled[
-        ['approach', 'dimensionality_reduction_techniques']
-    ].groupby('approach').first().reset_index(drop=False)
-    best_configs_df.to_pickle(BEST_CONFIGURATIONS)
+    if approach is not OriginalMode:
+        # Export the best configurations
+        best_configs_df = df_sampled[
+            ['approach', 'dimensionality_reduction_techniques']
+        ].groupby('approach').first().reset_index(drop=False)
+        best_configs_df.to_pickle(BEST_CONFIGURATIONS)
 
     return df_sampled
 
