@@ -136,13 +136,17 @@ class OriginalMode(Approach):
         # Generate the contributions for the filtered data
         return super(OriginalMode, self)._generate_contributions(global_values.mask_label)
 
+    @staticmethod
+    def multiprocessing_metric(pair):
+        return IMAGES_SIMILARITY_METRIC(pair[0], pair[1])
+
     def cluster_contributions(self, contributions: np.ndarray) -> tuple:
         # Compute the similarity matrix for the contributions
         similarity_matrix = compute_comparison_matrix(
             list(contributions),
-            metric=IMAGES_SIMILARITY_METRIC,
+            metric=self.multiprocessing_metric,
             show_progress_bar=True,
-            multi_process=False
+            multi_process=True
         )
         # Cluster the contributions using the similarity matrix
         clusters = self.get_clustering_technique()(affinity='precomputed').fit_predict(similarity_matrix)

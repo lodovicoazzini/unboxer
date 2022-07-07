@@ -15,5 +15,10 @@ CLUSTERS_SORT_METRIC: Callable[[list], tuple] = lambda cluster: (
     -len(cluster)
 )
 CLUSTERS_SIMILARITY_METRIC: Callable[[Clustering, Clustering], float] = element_sim
-IMAGES_SIMILARITY_METRIC: Callable = lambda lhs, rhs: euclidean_similarity(mask_noise(lhs), mask_noise(rhs))
+
+
+def IMAGES_SIMILARITY_METRIC(lhs, rhs):
+    euclidean_similarity(mask_noise(lhs), mask_noise(rhs))
+
+
 HUMAN_EVALUATION_APPROACHES = ['Lime', 'Rise', 'moves+orientation(10)_original', 'orientation+bitmaps(10)_original']

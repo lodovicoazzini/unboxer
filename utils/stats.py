@@ -73,7 +73,7 @@ def compute_comparison_matrix(
     pairs = list(combinations(values, 2))
     # Show the progress bar
     if show_progress_bar:
-        pairs = tqdm(pairs, desc='Computing the comparison matrix', total=len(pairs))
+        pairs = tqdm(pairs, desc='Computing the comparison matrix', total=len(pairs), leave=False)
     # Create the pool of processes and use it to compute the distances
     if multi_process:
         pool = multiprocessing.Pool(int(os.cpu_count() / 2))
