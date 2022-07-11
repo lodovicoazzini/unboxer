@@ -1,6 +1,7 @@
 from typing import Callable
 
 import numpy as np
+import pandas as pd
 import seaborn as sns
 from matplotlib import pyplot as plt
 
@@ -39,17 +40,26 @@ def show_comparison_matrix(
         show_progress_bar=show_progress_bar,
         multi_process=multi_process
     )
+
+    # Prepare the data for the image
+    plot_data = pd.DataFrame(
+        matrix,
+        columns=index,
+        index=index
+    )
+    # Find the average value for each cell
+    plot_data = plot_data.groupby(plot_data.columns, axis=1).mean()
+    plot_data = plot_data.groupby(plot_data.index, axis=0).mean()
+
     if remove_diagonal:
-        np.fill_diagonal(matrix, np.nan)
+        np.fill_diagonal(matrix, plot_data.values)
 
     #  Show the image
-    fig_size = len(matrix)
+    fig_size = max(len(plot_data), len(plot_data.columns))
     fig = plt.figure(figsize=(fig_size, fig_size))
     ax = sns.heatmap(
-        matrix,
+        plot_data,
         annot=show_values,
-        xticklabels=index,
-        yticklabels=index,
         cmap='OrRd',
         linewidth=.1,
         vmin=values_range[0] if values_range[0] is not None else np.nanmin(matrix),
