@@ -51,7 +51,7 @@ def heatmaps_clusters_projections():
         # Convert the clusters to membership list
         clusters_membership = np.array(Clustering().from_cluster_list(clusters).to_membership_list())
         # Visualize the projections of the contributions clusters
-        fig, ax = visualize_clusters_projections(projections=projections, cluster_list=clusters_membership)
+        fig, ax = visualize_clusters_projections(projections=projections, cluster_membership=clusters_membership)
         ax.set_title(f'{approach} clusters projections')
         save_figure(fig, f'out/low_level/{approach}/clusters_projections')
 

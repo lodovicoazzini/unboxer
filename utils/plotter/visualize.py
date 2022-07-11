@@ -9,17 +9,15 @@ from config.config_outputs import MAX_LABELS, MAX_SAMPLES
 from utils import global_values
 
 
-def visualize_clusters_projections(projections: np.ndarray, cluster_list: np.ndarray):
+def visualize_clusters_projections(projections: np.ndarray, cluster_membership: np.ndarray):
     """
     Visualize the projections for the clusters as a points
     :param projections: The 2D projections for the images
-    :param cluster_list: The cluster membership list for the projections
+    :param cluster_membership: The cluster membership list for the projections
     :return: The image and the axis
     """
     # Create the figure
     fig = plt.figure(figsize=(16, 9))
-    # Get the membership_list for the clusters
-    cluster_membership = Clustering().from_cluster_list(list(cluster_list)).to_membership_list()
     # Plot the data
     ax = sns.scatterplot(
         x=[projection[0] for projection in projections],
