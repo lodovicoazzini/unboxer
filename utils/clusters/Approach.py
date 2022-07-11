@@ -2,11 +2,13 @@ import abc
 
 import numpy as np
 import tensorflow as tf
+from sklearn.manifold import TSNE
 from sklearn.metrics import silhouette_score
 
 from config.config_general import IMAGES_SIMILARITY_METRIC
-from config.config_heatmaps import CLUSTERING_TECHNIQUE
+from config.config_heatmaps import CLUSTERING_TECHNIQUE, DIMENSIONALITY_REDUCTION_TECHNIQUES
 from utils import global_values
+from utils.images.postprocessing import mask_noise
 from utils.stats import compute_comparison_matrix
 
 
@@ -141,10 +143,11 @@ class OriginalMode(Approach):
         return IMAGES_SIMILARITY_METRIC(pair[0], pair[1])
 
     def cluster_contributions(self, contributions: np.ndarray) -> tuple:
+        # _, threshold = mask_noise(np.concatenate(contributions))
         # Compute the similarity matrix for the contributions
         similarity_matrix = compute_comparison_matrix(
             list(contributions),
-            metric=IMAGES_SIMILARITY_METRIC,
+            metric=lambda lhs, rhs: IMAGES_SIMILARITY_METRIC(lhs, rhs),
             show_progress_bar=True,
             multi_process=False
         )
@@ -158,4 +161,8 @@ class OriginalMode(Approach):
         except ValueError:
             score = np.nan
 
-        return clusters, np.nan, score
+        # Flatten the contributions and project them into the latent space
+        contributions_flattened = contributions.reshape(contributions.shape[0], -1)
+        projections = TSNE(perplexity=40).fit_transform(contributions_flattened)
+
+        return clusters, projections, score
