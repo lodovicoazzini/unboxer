@@ -147,7 +147,7 @@ class OriginalMode(Approach):
         # Compute the similarity matrix for the contributions
         similarity_matrix = compute_comparison_matrix(
             list(contributions),
-            metric=lambda lhs, rhs: IMAGES_SIMILARITY_METRIC(lhs, rhs),
+            metric=IMAGES_SIMILARITY_METRIC,
             show_progress_bar=True,
             multi_process=False
         )
