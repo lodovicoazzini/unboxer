@@ -22,8 +22,12 @@ class Predictor:
         explabel = np.argmax(explabel.squeeze())
 
         # Predictions vector
-        img_rgb = tf.image.grayscale_to_rgb(tf.convert_to_tensor(reshape(img)))
-        predictions = Predictor.model.predict(img_rgb)
+        try:
+            img_rgb = tf.image.grayscale_to_rgb(tf.convert_to_tensor(reshape(img)))
+            predictions = Predictor.model.predict(img_rgb)
+        except:
+            # The model expects grayscale images
+            predictions = Predictor.model.predict(tf.convert_to_tensor(reshape(img)))
 
         prediction1, prediction2 = np.argsort(-predictions[0])[:2]
 
