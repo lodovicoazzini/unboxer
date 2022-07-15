@@ -68,9 +68,8 @@ def get_central_elements(
     medoid_idx = np.argmin(np.apply_along_axis(np.nansum, axis=0, arr=dist_matrix))
     medoid = cluster_idxs[medoid_idx]
     # Set the image to itself to inf
-    medoid_distances = np.nan_to_num(dist_matrix[medoid_idx], nan=np.inf)
+    medoid_distances = dist_matrix[medoid_idx]
     # Find the three closest elements
-    closest = cluster_idxs[np.argsort(medoid_distances)][:elements_count - 1]
+    closest = cluster_idxs[np.argsort(medoid_distances)][:elements_count]
     # Add the medoid
-    central = list(np.insert(closest, 0, values=medoid))
-    return central
+    return closest
