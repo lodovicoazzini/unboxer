@@ -6,9 +6,8 @@ from sklearn.manifold import TSNE
 from sklearn.metrics import silhouette_score
 
 from config.config_general import IMAGES_SIMILARITY_METRIC
-from config.config_heatmaps import CLUSTERING_TECHNIQUE, DIMENSIONALITY_REDUCTION_TECHNIQUES
+from config.config_heatmaps import CLUSTERING_TECHNIQUE
 from utils import global_values
-from utils.images.postprocessing import mask_noise
 from utils.stats import compute_comparison_matrix
 
 
@@ -143,7 +142,6 @@ class OriginalMode(Approach):
         return IMAGES_SIMILARITY_METRIC(pair[0], pair[1])
 
     def cluster_contributions(self, contributions: np.ndarray) -> tuple:
-        # _, threshold = mask_noise(np.concatenate(contributions))
         # Compute the similarity matrix for the contributions
         similarity_matrix = compute_comparison_matrix(
             list(contributions),
