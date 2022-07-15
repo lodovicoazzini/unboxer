@@ -1,77 +1,38 @@
 import numpy as np
-
-from feature_map.mnist.feature import Feature
-
-
-def compute_map_3d(features, samples):
-    # Generate the map axes
-    map_features = []
-    for f in features:
-        print("Using feature %s" % f[0])
-        map_features.append(Feature(f[0], f[1], f[2], f[3], f[4]))
-
-    feature1 = map_features[0]
-    feature2 = map_features[1]
-    feature3 = map_features[2]
-
-    # Reshape the data as ndimensional array. But account for the lower and upper bins.
-    archive_data = np.full([feature1.num_cells, feature2.num_cells, feature3.num_cells], None, dtype=object)
-    # counts the number of samples in each cell
-    coverage_data = np.zeros(shape=(10, feature1.num_cells, feature2.num_cells, feature3.num_cells), dtype=int)
-
-    misbehaviour_data = np.zeros(shape=(feature1.num_cells, feature2.num_cells, feature3.num_cells), dtype=int)
-
-    for sample in samples:
-        # Coordinates reason in terms of bins 1, 2, 3, while data is 0-indexed
-        x_coord = feature1.get_coordinate_for(sample) - 1
-        y_coord = feature2.get_coordinate_for(sample) - 1
-        z_coord = feature3.get_coordinate_for(sample) - 1
-
-        if archive_data[x_coord, y_coord, z_coord] is None:
-            arx = [sample]
-            archive_data[x_coord, y_coord, z_coord] = arx
-        else:
-            archive_data[x_coord, y_coord, z_coord].append(sample)
-        # Increment the coverage
-        coverage_data[int(sample.expected_label), x_coord, y_coord, z_coord] += 1
-
-        if sample.is_misbehavior:
-            # Increment the misbehaviour
-            misbehaviour_data[x_coord, y_coord, z_coord] += 1
-
-    return archive_data, coverage_data, misbehaviour_data
+from tqdm import tqdm
 
 
 def compute_map(features, samples):
+    # Log the information
     feature_comb_str = "+".join([feature.feature_name for feature in features])
     print(f'Using the features {feature_comb_str}')
-    feature1 = features[0]
-    feature2 = features[1]
 
-    # Keep track of the samples in each cell
-    archive_data = np.empty([feature1.num_cells, feature2.num_cells], dtype=list)
+    # Compute the shape of the map (number of cells of each feature)
+    shape = [feature.num_cells for feature in features]
+    # Keep track of the samples in each cell, initialize a matrix of empty arrays
+    archive_data = np.empty(shape=shape, dtype=list)
     for idx in np.ndindex(*archive_data.shape):
         archive_data[idx] = []
     # Count the number of items in each cell
-    coverage_data = np.zeros(shape=(feature1.num_cells, feature2.num_cells), dtype=int)
-    misbehaviour_data = np.zeros(shape=(feature1.num_cells, feature2.num_cells), dtype=int)
+    coverage_data = np.zeros(shape=shape, dtype=int)
+    misbehaviour_data = np.zeros(shape=shape, dtype=int)
     # Initialize the matrix of clusters to empty lists
-    clusters = np.empty([feature1.num_cells, feature2.num_cells], dtype=list)
+    clusters = np.empty(shape=shape, dtype=list)
     for idx in np.ndindex(*clusters.shape):
         clusters[idx] = []
 
     for idx, sample in enumerate(samples):
-        x_coord = feature1.get_coordinate_for(sample) - 1
-        y_coord = feature2.get_coordinate_for(sample) - 1
-
+        # Coordinates reason in terms of bins 1, 2, 3, while data is 0-indexed
+        coords = tuple([feature.get_coordinate_for(sample) - 1 for feature in features])
         # Archive the sample
-        archive_data[x_coord, y_coord].append(sample)
+
+        archive_data[coords].append(sample)
         # Increment the coverage
-        coverage_data[x_coord, y_coord] += 1
+        coverage_data[coords] += 1
         # Increment the misbehaviour
         if sample.is_misbehavior:
-            misbehaviour_data[x_coord, y_coord] += 1
-        # Update teh clusters
-        clusters[x_coord, y_coord].append(idx)
+            misbehaviour_data[coords] += 1
+        # Update the clusters
+        clusters[coords].append(idx)
 
     return archive_data, coverage_data, misbehaviour_data, clusters

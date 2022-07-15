@@ -1,14 +1,15 @@
-import itertools
 import time
+from functools import reduce
+from itertools import combinations
 
 import numpy as np
 import seaborn as sns
 from matplotlib import pyplot as plt
 
 from config.config_data import EXPECTED_LABEL
-from config.config_featuremaps import NUM_CELLS
+from config.config_featuremaps import NUM_CELLS, MAP_DIMENSIONS
 from feature_map.mnist.utils.feature_map.compute import compute_map
-from utils.general import save_figure
+from utils.general import save_figure, scale_values_in_range
 
 
 def visualize_map(features, samples):
@@ -23,57 +24,88 @@ def visualize_map(features, samples):
 
     # Create one visualization for each pair of self.axes selected in order
     data = []
-    for feature1, feature2 in itertools.combinations(features, 2):
+    map_dimensions = min(MAP_DIMENSIONS, 3)
+    print(list(range(2, min(map_dimensions + 1, 4))))
+    # Compute all the 2d and 3d feature combinations
+    features_combinations = reduce(
+        lambda acc, comb: acc + comb,
+        [
+            list(combinations(features, n_features))
+            for n_features in list(range(2, min(map_dimensions + 1, 4)))]
+    )
+    for features_combination in features_combinations:
         start_time = time.time()
-        features_comb = [feature1, feature2]
-        _, coverage_data, misbehaviour_data, clusters = compute_map(features_comb, samples)
+        features_comb_str = '+'.join([feature.feature_name for feature in features_combination])
+        map_size_str = f'{NUM_CELLS}x{NUM_CELLS}'
+        # Place the values over the map
+        _, coverage_data, misbehaviour_data, clusters = compute_map(features_combination, samples)
 
-        # figure
-        fig, ax = plt.subplots(figsize=(8, 8))
+        # Handle the case of 3d maps
+        if len(features_combination) == 3:
+            # Visualize the map
+            fig, ax = visualize_3d_map(coverage_data, misbehaviour_data)
+        # Handle the case of 2d maps
+        else:
+            # Visualize the map
+            fig, ax = visualize_2d_map(coverage_data, misbehaviour_data)
 
-        cmap = sns.cubehelix_palette(dark=0.5, light=0.9, as_cmap=True)
-        # Set the color for the under the limit to be white (so they are not visualized)
-        cmap.set_under('1.0')
-
-        # For some weird reason the data in the heatmap are shown with the first dimension on the y and the
-        # second on the x. So we transpose
-        coverage_data = np.transpose(coverage_data)
-
-        sns.heatmap(coverage_data, vmin=1, vmax=20, square=True, cmap=cmap)
-
-        # Plot misbehaviors - Iterate over all the elements of the array to get their coordinates:
-        it = np.nditer(misbehaviour_data, flags=['multi_index'])
-        for v in it:
-            # Plot only misbehaviors
-            if v > 0:
-                alpha = 0.1 * v if v <= 10 else 1.0
-                (x, y) = it.multi_index
-                # Plot as scattered plot. the +0.5 ensures that the marker in centered in the cell
-                plt.scatter(x + 0.5, y + 0.5, color="black", alpha=alpha, s=50)
-
-        xtickslabel = [round(the_bin, 1) for the_bin in feature1.get_bins_labels()]
-        ytickslabel = [round(the_bin, 1) for the_bin in feature2.get_bins_labels()]
-        ax.set_xticklabels(xtickslabel)
-        plt.xticks(rotation=45)
-        ax.set_yticklabels(ytickslabel)
-        plt.yticks(rotation=0)
+        # Set the style
         fig.suptitle(f'Feature map: digit {EXPECTED_LABEL}', fontsize=16)
-        # Plot small values of y below.
-        # We need this to have the y axis start from zero at the bottom
-        ax.invert_yaxis()
-        # axis labels
-        plt.xlabel(feature1.feature_name)
-        plt.ylabel(feature2.feature_name)
+        ax.set_xlabel(features_combination[0].feature_name)
+        ax.set_ylabel(features_combination[1].feature_name)
+        if len(features_combination) == 3:
+            ax.set_zlabel(features_combination[2].feature_name)
+        # Export the figure
+        save_figure(fig, f'out/featuremaps/featuremap_{EXPECTED_LABEL}_{map_size_str}_{features_comb_str}')
 
-        features_comb_str = '+'.join([feature.feature_name for feature in [feature1, feature2]])
+        # Record the data
         data.append({
             'approach': features_comb_str,
             'map_size': NUM_CELLS,
             'map_time': time.time() - start_time,
             'clusters': clusters
         })
-
-        map_size_str = f'{NUM_CELLS}x{NUM_CELLS}'
-        save_figure(fig, f'out/featuremaps/featuremap_{EXPECTED_LABEL}_{map_size_str}_{features_comb_str}')
-
+    plt.show()
     return data
+
+
+def visualize_3d_map(coverage_data, misbehavior_data):
+    # Create the figure
+    fig = plt.figure(figsize=(8, 8))
+    # Set the 3d plot
+    ax = fig.add_subplot(projection='3d')
+    # Get the coverage and misbehavior data for the plot
+    x_coverage, y_coverage, z_coverage, values_coverage = unpack_plot_data(coverage_data)
+    x_misbehavior, y_misbehavior, z_misbehavior, values_misbehavior = unpack_plot_data(misbehavior_data)
+    sizes_coverage, sizes_misbehavior = scale_values_in_range([values_coverage, values_misbehavior], 100, 1000)
+    # Plot the data
+    ax.scatter(x_coverage, y_coverage, z_coverage, s=sizes_coverage, marker='o', alpha=.4)
+    ax.scatter(x_misbehavior, y_misbehavior, z_misbehavior, s=sizes_misbehavior, c='red', alpha=.8)
+    return fig, ax
+
+
+def visualize_2d_map(coverage_data, misbehavior_data):
+    # The heatmap inverts x and y -> transpose
+    coverage_data = np.transpose(coverage_data)
+    # Create the figure
+    fig, ax = plt.subplots(figsize=(8, 8))
+    # Set the colormap
+    colormap = sns.cubehelix_palette(dark=0.5, light=0.9, as_cmap=True)
+    # Set the color for out-of-rage values to be white (not visible)
+    colormap.set_under('1.0')
+    # Plot the coverage data
+    sns.heatmap(coverage_data, vmin=1, vmax=20, square=True, cmap=colormap)
+    # Plot the misbehavior data
+    x, y, values = unpack_plot_data(misbehavior_data)
+    alphas = scale_values_in_range(values, .1, 1)
+    # Ensure that the markers are centered in the cells
+    plt.scatter(x + .5, y + .5, color="black", alpha=alphas, s=100)
+    return fig, ax
+
+
+def unpack_plot_data(data: np.ndarray):
+    # Get the indexes where the values are not zero
+    indexes = [np.array(idx) for idx in data.nonzero()]
+    # Get the values corresponding to each triple of indexes
+    values = np.array([data[idx] for idx in zip(*indexes)])
+    return *indexes, values

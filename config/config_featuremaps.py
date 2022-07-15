@@ -8,3 +8,4 @@ BITMAP_THRESHOLD: float = 0.5
 ORIENTATION_THRESHOLD: float = 0.
 FEATUREMAPS_CLUSTERING_MODE: FeaturemapsClusteringMode = FeaturemapsClusteringMode.ORIGINAL
 IMAGES_DISTANCE_METRIC: Callable = ssim
+MAP_DIMENSIONS = 3
