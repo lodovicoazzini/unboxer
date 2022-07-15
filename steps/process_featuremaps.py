@@ -14,11 +14,7 @@ BASE_DIR = f'out/featuremaps/{FEATUREMAPS_CLUSTERING_MODE.name}'
 def main():
     warnings.filterwarnings('ignore')
 
-    # Import the featuremaps data or generate it if not there
-    if os.path.exists(FEATUREMAPS_DATA_RAW):
-        featuremaps_df = pd.read_pickle(FEATUREMAPS_DATA_RAW)
-    else:
-        featuremaps_df = feature_map_generator.main()
+    featuremaps_df = feature_map_generator.main()
 
     # Process the feature-maps and get the dataframe
     print('Extracting the clusters data from the feature-maps ...')
