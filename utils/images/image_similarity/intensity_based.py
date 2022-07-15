@@ -14,7 +14,7 @@ def euclidean_similarity(lhs: np.ndarray, rhs: np.ndarray) -> float:
     dist = np.sqrt(np.sum((lhs - rhs) ** 2))
     # Map the values from [0:same, inf:different) to [0:different, 1:same)
     dist = math.exp(-dist)
-    return dist
+    return 1 - dist
 
 
 def mean_squared_similarity(lhs: np.ndarray, rhs: np.ndarray) -> float:
@@ -30,4 +30,4 @@ def mean_squared_similarity(lhs: np.ndarray, rhs: np.ndarray) -> float:
     err /= float(lhs.shape[0] * rhs.shape[1])
     # Map the values from [0:same, inf:different) to [0:different, 1:same)
     err = math.exp(-err)
-    return err
+    return 1 - err
