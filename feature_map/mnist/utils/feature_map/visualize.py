@@ -25,7 +25,6 @@ def visualize_map(features, samples):
     # Create one visualization for each pair of self.axes selected in order
     data = []
     map_dimensions = min(MAP_DIMENSIONS, 3)
-    print(list(range(2, min(map_dimensions + 1, 4))))
     # Compute all the 2d and 3d feature combinations
     features_combinations = reduce(
         lambda acc, comb: acc + comb,
@@ -38,16 +37,15 @@ def visualize_map(features, samples):
         features_comb_str = '+'.join([feature.feature_name for feature in features_combination])
         map_size_str = f'{NUM_CELLS}x{NUM_CELLS}'
         # Place the values over the map
-        _, coverage_data, misbehaviour_data, clusters = compute_map(features_combination, samples)
-
+        _, coverage_data, misbehavior_data, clusters = compute_map(features_combination, samples)
         # Handle the case of 3d maps
         if len(features_combination) == 3:
             # Visualize the map
-            fig, ax = visualize_3d_map(coverage_data, misbehaviour_data)
+            fig, ax = visualize_3d_map(coverage_data, misbehavior_data)
         # Handle the case of 2d maps
         else:
             # Visualize the map
-            fig, ax = visualize_2d_map(coverage_data, misbehaviour_data)
+            fig, ax = visualize_2d_map(coverage_data, misbehavior_data)
 
         # Set the style
         fig.suptitle(f'Feature map: digit {EXPECTED_LABEL}', fontsize=16)
@@ -79,12 +77,17 @@ def visualize_3d_map(coverage_data, misbehavior_data):
     x_misbehavior, y_misbehavior, z_misbehavior, values_misbehavior = unpack_plot_data(misbehavior_data)
     sizes_coverage, sizes_misbehavior = scale_values_in_range([values_coverage, values_misbehavior], 100, 1000)
     # Plot the data
-    ax.scatter(x_coverage, y_coverage, z_coverage, s=sizes_coverage, marker='o', alpha=.4)
-    ax.scatter(x_misbehavior, y_misbehavior, z_misbehavior, s=sizes_misbehavior, c='red', alpha=.8)
+    ax.scatter(x_coverage, y_coverage, z_coverage, s=sizes_coverage, alpha=.4, label='all')
+    ax.scatter(x_misbehavior, y_misbehavior, z_misbehavior, s=sizes_misbehavior, c='red', alpha=.8,
+               label='misclassified')
+    ax.legend(markerscale=.3, frameon=False, bbox_to_anchor=(.3, 1.1))
     return fig, ax
 
 
 def visualize_2d_map(coverage_data, misbehavior_data):
+    # Compute the percentage of misbehavior
+    misbehavior_data = misbehavior_data / coverage_data
+    np.nan_to_num(misbehavior_data, copy=False, nan=0)
     # The heatmap inverts x and y -> transpose
     coverage_data = np.transpose(coverage_data)
     # Create the figure
@@ -94,12 +97,13 @@ def visualize_2d_map(coverage_data, misbehavior_data):
     # Set the color for out-of-rage values to be white (not visible)
     colormap.set_under('1.0')
     # Plot the coverage data
-    sns.heatmap(coverage_data, vmin=1, vmax=20, square=True, cmap=colormap)
+    sns.heatmap(coverage_data, vmin=1, vmax=20, square=True, cmap=colormap, cbar_kws={'label': 'cluster size'})
     # Plot the misbehavior data
     x, y, values = unpack_plot_data(misbehavior_data)
-    alphas = scale_values_in_range(values, .1, 1)
     # Ensure that the markers are centered in the cells
-    plt.scatter(x + .5, y + .5, color="black", alpha=alphas, s=100)
+    plt.scatter(x + .5, y + .5, color="black", alpha=values, s=100, label='misclassified (%)')
+    # Style
+    ax.legend(frameon=False, bbox_to_anchor=(.3, 1.1))
     return fig, ax
 
 
