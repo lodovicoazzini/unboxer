@@ -4,7 +4,7 @@ import warnings
 import tensorflow as tf
 from keras.utils.np_utils import to_categorical
 
-from config.config_data import EXPECTED_LABEL, DATASET_LOADER, USE_RGB
+from config.config_data import EXPECTED_LABEL, DATASET_LOADER, USE_RGB, MISBEHAVIOR_ONLY
 from config.config_dirs import MODEL
 from utils.dataset import get_train_test_data, get_data_masks
 
@@ -40,3 +40,7 @@ mask_miss, mask_label = get_data_masks(
     verbose=False
 )
 mask_miss_label = mask_miss[mask_label]
+
+if MISBEHAVIOR_ONLY:
+    test_data = test_data[mask_miss]
+    test_data_gs = test_data_gs[mask_miss]

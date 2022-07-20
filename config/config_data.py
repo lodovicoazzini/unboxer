@@ -5,3 +5,4 @@ from tensorflow.keras import datasets
 DATASET_LOADER = lambda: datasets.mnist.load_data()
 USE_RGB = True
 EXPECTED_LABEL = 5
+MISBEHAVIOR_ONLY = False
