@@ -8,12 +8,12 @@ from config.config_dirs import FEATUREMAPS_DATA_RAW
 from feature_map.mnist.feature import Feature
 from feature_map.mnist.utils.feature_map.preprocess import extract_samples_and_stats
 from feature_map.mnist.utils.feature_map.visualize import visualize_map
+from utils import global_values
 
 
 def main():
     # Load the data
-    mnist = tf.keras.datasets.mnist
-    (_, _), (x_test, y_test) = mnist.load_data()
+    x_test, y_test = global_values.test_data_gs, global_values.test_labels
     # Extract the samples and the stats
     start_time = time.time()
     samples, stats = extract_samples_and_stats(x_test, y_test)

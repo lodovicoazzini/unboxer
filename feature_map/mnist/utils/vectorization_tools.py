@@ -6,10 +6,10 @@ import numpy as np
 def preprocess(npdata):
     bw = np.asarray(npdata).copy()
     # Pixel range is 0...255, 256/2 = 128
-    bw[bw < 128] = 0  # Black
-    bw[bw >= 128] = 255  # White
+    bw[bw < 128 / 255] = 0  # Black
+    bw[bw >= 128 / 255] = 1  # White
     # Normalization
-    bw = bw / 255.0
+    # bw = bw / 255.0
     return bw
 
 
