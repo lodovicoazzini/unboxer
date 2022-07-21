@@ -12,11 +12,9 @@ from utils import global_values
 
 
 def main():
-    # Load the data
-    x_test, y_test = global_values.test_data_gs, global_values.test_labels
     # Extract the samples and the stats
     start_time = time.time()
-    samples, stats = extract_samples_and_stats(x_test, y_test)
+    samples, stats = extract_samples_and_stats()
     # Get the list of features
     features = [
         Feature(feature_name, feature_stats['min'], feature_stats['max'])

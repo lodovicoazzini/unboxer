@@ -1,3 +1,4 @@
+import numpy as np
 import pandas as pd
 from tqdm import tqdm
 
@@ -7,9 +8,10 @@ from feature_map.mnist.feature_simulator import FeatureSimulator
 from feature_map.mnist.sample import Sample
 from feature_map.mnist.utils import vectorization_tools
 from feature_map.mnist.utils.general import missing
+from utils import global_values
 
 
-def extract_samples_and_stats(data, labels):
+def extract_samples_and_stats():
     """
     Iteratively walk in the dataset and process all the json files.
     For each of them compute the statistics.
@@ -18,11 +20,15 @@ def extract_samples_and_stats(data, labels):
     stats = {feature_name: [] for feature_name in FeatureSimulator.get_simulators().keys()}
 
     data_samples = []
-    filtered = list(filter(lambda t: t[2] == EXPECTED_LABEL, zip(range(len(data)), data, labels)))
 
-    for seed, image, label in tqdm(filtered, desc='Extracting the samples and the statistics'):
+    filtered = list(filter(lambda t: t[1] == EXPECTED_LABEL, zip(
+        global_values.test_data_gs,
+        global_values.test_labels,
+        global_values.predictions
+    )))
+    for image, label, prediction in tqdm(filtered, desc='Extracting the samples and the statistics'):
         xml_desc = vectorization_tools.vectorize(image)
-        sample = Sample(seed=seed, desc=xml_desc, label=label)
+        sample = Sample(desc=xml_desc, label=label, prediction=prediction)
         data_samples.append(sample)
         # update the stats
         for feature_name, feature_value in sample.features.items():

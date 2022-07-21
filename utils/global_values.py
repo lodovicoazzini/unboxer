@@ -44,3 +44,6 @@ mask_miss_label = mask_miss[mask_label]
 if MISBEHAVIOR_ONLY:
     test_data = test_data[mask_miss]
     test_data_gs = test_data_gs[mask_miss]
+    test_labels = test_labels[mask_miss]
+    predictions = predictions[mask_miss]
+    predictions_cat = predictions_cat[mask_miss]
