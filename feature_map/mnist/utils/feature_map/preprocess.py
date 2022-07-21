@@ -28,7 +28,7 @@ def extract_samples_and_stats():
     )))
     for image, label, prediction in tqdm(filtered, desc='Extracting the samples and the statistics'):
         xml_desc = vectorization_tools.vectorize(image)
-        sample = Sample(desc=xml_desc, label=label, prediction=prediction)
+        sample = Sample(desc=xml_desc, label=label, prediction=prediction, image=image)
         data_samples.append(sample)
         # update the stats
         for feature_name, feature_value in sample.features.items():

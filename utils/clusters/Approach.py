@@ -84,7 +84,8 @@ class LocalLatentMode(Approach):
 
     def generate_contributions(self):
         # Generate the contributions for the filtered data
-        return super(LocalLatentMode, self)._generate_contributions(global_values.mask_label)
+        mask = np.array(global_values.test_labels == global_values.EXPECTED_LABEL)
+        return super(LocalLatentMode, self)._generate_contributions(mask=mask)
 
     def cluster_contributions(self, contributions: np.ndarray) -> tuple:
         # Flatten teh contributions and project then in the latent space
@@ -135,7 +136,8 @@ class OriginalMode(Approach):
 
     def generate_contributions(self):
         # Generate the contributions for the filtered data
-        return super(OriginalMode, self)._generate_contributions(global_values.mask_label)
+        mask = np.array(global_values.test_labels == global_values.EXPECTED_LABEL)
+        return super(OriginalMode, self)._generate_contributions(mask=mask)
 
     @staticmethod
     def multiprocessing_metric(pair):

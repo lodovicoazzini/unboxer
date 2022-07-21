@@ -12,7 +12,7 @@ NAMESPACE = '{http://www.w3.org/2000/svg}'
 
 
 def bitmap_count(sample):
-    image = sample.purified_image
+    image = sample.image
     return len(image[image > BITMAP_THRESHOLD])
 
 
@@ -40,7 +40,7 @@ def move_distance(sample):
 def orientation_calc(sample):
     # TODO: find out why x and y are inverted
     # convert the image to an array and remove the 1 dimensions (bw) -> 2D array
-    image = sample.purified_image
+    image = sample.image
     # get the indices where the matrix is greater than the threshold
     y, x = np.where(image > ORIENTATION_THRESHOLD)
     lr = LinearRegression(fit_intercept=True)

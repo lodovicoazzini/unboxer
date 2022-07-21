@@ -73,7 +73,7 @@ def export_clusters_sample_images():
         # Select the first N clusters based on the value in the config file
         cluster_list = cluster_list[:NUM_SEPARABILITY_CLUSTERS]
         # Get the contributions or the images themselves
-        label_images = global_values.test_data_gs[global_values.mask_label]
+        label_images = global_values.test_data_gs[global_values.test_labels == global_values.EXPECTED_LABEL]
 
         # Process the clusters
         for idx, cluster in tqdm(

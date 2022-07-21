@@ -4,21 +4,17 @@ from os.path import join
 import matplotlib.pyplot as plt
 import numpy as np
 
-from config.config_data import EXPECTED_LABEL
 from feature_map.mnist.feature_simulator import FeatureSimulator
 from feature_map.mnist.utils import rasterization_tools
-from utils.global_values import predictions
 
 
 class Sample:
-    def __init__(self, desc, label, prediction):
+    def __init__(self, desc, label, prediction, image):
         self.id = id(self)
         self.xml_desc = desc
+        self.image = np.squeeze(image)
         self.expected_label = label
         self.predicted_label = prediction
-        # if self.predicted_label != EXPECTED_LABEL:
-        #     print(f'predicted label: {self.predicted_label}, real label: {label}, idx: {self.seed}')
-        # assert self.predicted_label != EXPECTED_LABEL
         self.features = {
             feature_name: feature_simulator(self)
             for feature_name, feature_simulator in FeatureSimulator.get_simulators().items()
@@ -29,12 +25,8 @@ class Sample:
                 'expected_label': self.expected_label,
                 'predicted_label': self.predicted_label,
                 'misbehaviour': self.is_misbehavior,
-                'features': self.features
+                'features': self.features,
                 }
-
-    @property
-    def purified_image(self):
-        return rasterization_tools.rasterize_in_memory(self.xml_desc)
 
     @property
     def is_misbehavior(self):
@@ -53,12 +45,12 @@ class Sample:
             (json.dump(data, f, sort_keys=True, indent=4))
 
     def save_png(self, filename):
-        plt.imsave(filename + '.png', self.purified_image.reshape(28, 28), cmap='gray', format='png')
+        plt.imsave(filename + '.png', self.image.reshape(28, 28), cmap='gray', format='png')
 
     def save_npy(self, filename):
-        np.save(filename, self.purified_image)
+        np.save(filename, self.image)
         test_img = np.load(filename + '.npy')
-        diff = self.purified_image - test_img
+        diff = self.image - test_img
         assert (np.linalg.norm(diff) == 0)
 
     def save_svg(self, filename):

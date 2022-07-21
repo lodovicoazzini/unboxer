@@ -2,6 +2,7 @@ from typing import Callable
 
 import numpy as np
 from clusim.clusimelement import element_sim
+from utils.clusters.similarity_metrics import intra_pairs_similarity
 from clusim.clustering import Clustering
 
 from utils.clusters.extractor import get_frac_misses
@@ -15,7 +16,7 @@ CLUSTERS_SORT_METRIC: Callable[[list], tuple] = lambda cluster: (
     else 0,
     -len(cluster)
 )
-CLUSTERS_SIMILARITY_METRIC: Callable[[Clustering, Clustering], float] = element_sim
+CLUSTERS_SIMILARITY_METRIC: Callable[[Clustering, Clustering], float] = intra_pairs_similarity
 
 
 def IMAGES_SIMILARITY_METRIC(lhs, rhs, threshold: float = None, max_activation: float = None, num_bins: int = 2):
@@ -30,4 +31,10 @@ def IMAGES_SIMILARITY_METRIC(lhs, rhs, threshold: float = None, max_activation: 
     return ssim(lhs, rhs)
 
 
-HUMAN_EVALUATION_APPROACHES = ['Lime', 'Rise', 'moves+orientation(10)_original', 'orientation+bitmaps(10)_original']
+HUMAN_EVALUATION_APPROACHES = [
+    'Lime',
+    'Rise',
+    'moves+orientation(10)_original',
+    'orientation+bitmaps(10)_original',
+    'moves+orientation+bitmaps(10)_original'
+]

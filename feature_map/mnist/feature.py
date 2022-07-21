@@ -18,10 +18,6 @@ class Feature:
         self.feature_simulator = dict(FeatureSimulator.get_simulators().items())[feature_name].__name__
         self.num_cells = NUM_CELLS
         self.original_bins = np.linspace(min_value, max_value, NUM_CELLS)
-        if min_value < 0:
-            self.abs_bins = np.linspace(0, max_value + abs(min_value), NUM_CELLS)
-        else:
-            self.abs_bins = np.linspace(min_value, max_value, NUM_CELLS)
 
     def feature_descriptor(self, sample: Sample):
         """
@@ -51,10 +47,7 @@ class Feature:
             print("Sample %s has value %s above the max value %s for feature %s", sample.id, value, self.max_value,
                   self.feature_name)
 
-        if self.min_value < 0:
-            value = value + abs(self.min_value)
-
-        return np.digitize(value, self.abs_bins, right=False)
+        return np.digitize(value, self.original_bins, right=False)
 
     def get_bins_labels(self):
         """
