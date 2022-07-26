@@ -46,7 +46,7 @@ class Approach(metaclass=abc.ABCMeta):
 
     def _generate_contributions(
             self,
-            mask: np.ndarray = np.ones(len(global_values.test_data)),
+            mask: np.ndarray = np.ones(len(global_values.test_data), dtype=bool),
             only_positive: bool = True
     ) -> np.ndarray:
         # Generate the contributions
@@ -119,7 +119,8 @@ class GlobalLatentMode(Approach):
         for dim_red_tech in self.get_dimensionality_reduction_techniques():
             projections = dim_red_tech.fit_transform(contributions_flattened)
         # Cluster the filtered projections
-        projections_filtered = projections[global_values.mask_label]
+        mask = np.array(global_values.test_labels == global_values.EXPECTED_LABEL)
+        projections_filtered = projections[mask]
         clusters = self.get_clustering_technique()().fit_predict(projections_filtered)
         # Compute the silhouette score for the clusters
         try:
