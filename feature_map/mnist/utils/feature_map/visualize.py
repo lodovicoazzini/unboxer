@@ -24,13 +24,16 @@ def visualize_map(features, samples):
 
     # Create one visualization for each pair of self.axes selected in order
     data = []
-    map_dimensions = min(MAP_DIMENSIONS, 3)
+    map_dimensions = [
+        min(3, map_dimension) for map_dimension
+        in (MAP_DIMENSIONS if type(MAP_DIMENSIONS) is list else [MAP_DIMENSIONS])
+    ]
     # Compute all the 2d and 3d feature combinations
     features_combinations = reduce(
         lambda acc, comb: acc + comb,
         [
             list(combinations(features, n_features))
-            for n_features in list(range(2, min(map_dimensions + 1, 4)))]
+            for n_features in map_dimensions]
     )
     for features_combination in features_combinations:
         start_time = time.time()
