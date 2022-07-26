@@ -1,6 +1,6 @@
 import warnings
 
-from steps.insights import low_level, high_level
+from steps.insights import low_level, high_level, combined
 
 __EXECUTION_DICT = {
     1: low_level.heatmaps_distance_matrix,
@@ -8,7 +8,8 @@ __EXECUTION_DICT = {
     3: low_level.heatmaps_clusters_images,
     4: high_level.featuremaps_distance_matrix,
     5: high_level.featuremaps_clusters_projections,
-    6: high_level.featuremaps_clusters_images
+    6: high_level.featuremaps_clusters_images,
+    7: combined.combined_distance_matrix
 }
 
 __MENU = """
@@ -22,6 +23,8 @@ exit: terminate the program
 4: Distance matrix for the featuremaps clusters
 5: Clusters projections for the featuremaps clusters
 6: Sample clusters images for the featuremaps clusters
+
+7: Combined distance matrix for the high-level and the low-level clusters
 
 Select one or more of the options separated by a space: """
 
