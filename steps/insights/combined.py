@@ -2,11 +2,11 @@ from utils.general import save_figure
 from utils.plotter.distance_matrix import show_comparison_matrix
 from config.config_general import CLUSTERS_SIMILARITY_METRIC
 from clusim.clustering import Clustering
-from steps.human_evaluation.helpers import sample_clusters
+from steps.human_evaluation.helpers import sample_clusters, preprocess_data
 
 
 def combined_distance_matrix():
-    df = sample_clusters()
+    df = preprocess_data()
 
     print('Computing the distance matrix for the low-level and the high-level approaches ...')
     # Remove the configurations with only one clusters

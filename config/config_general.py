@@ -16,7 +16,7 @@ CLUSTERS_SORT_METRIC: Callable[[list], tuple] = lambda cluster: (
     else 0,
     -len(cluster)
 )
-CLUSTERS_SIMILARITY_METRIC: Callable[[Clustering, Clustering], float] = intra_pairs_similarity
+CLUSTERS_SIMILARITY_METRIC: Callable[[Clustering, Clustering], float] = element_sim
 
 
 def IMAGES_SIMILARITY_METRIC(lhs, rhs, threshold: float = None, max_activation: float = None, num_bins: int = 2):
@@ -35,6 +35,5 @@ HUMAN_EVALUATION_APPROACHES = [
     'Lime',
     'Rise',
     'moves+orientation(10)_original',
-    'orientation+bitmaps(10)_original',
-    'moves+orientation+bitmaps(10)_original'
+    'orientation+bitmaps(10)_original'
 ]
