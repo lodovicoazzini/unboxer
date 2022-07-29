@@ -18,7 +18,6 @@ from utils.plotter.visualize import visualize_clusters_projections, visualize_cl
 def heatmaps_distance_matrix():
     # Read the data
     df = pd.read_pickle(HEATMAPS_DATA)
-    print('Computing the distance matrix for the heatmaps ...')
     # Remove the configurations with only one clusters
     df['num_clusters'] = df['clusters'].apply(len)
     plot_data = df[df['num_clusters'] > 1]
@@ -61,6 +60,8 @@ def heatmaps_clusters_images():
     df = pd.read_pickle(HEATMAPS_DATA)
     # Get the most popular configurations
     df = sample_most_popular(df)
+    mask_label = np.array(global_values.test_labels == global_values.EXPECTED_LABEL)
+    mask_miss = np.array(global_values.test_labels != global_values.predictions)
     approaches = df.index.unique()
     for approach in tqdm(approaches, desc='Exporting the clusters sample images'):
         # Get the best configuration for the explainer
@@ -75,7 +76,7 @@ def heatmaps_clusters_images():
         # Get the mask for the clusters containing misclassified elements of the selected label
         mask_contains_miss_label = np.isin(
             clusters_membership,
-            np.unique(clusters_membership[global_values.mask_miss_label])
+            np.unique(clusters_membership[mask_miss[mask_label]])
         )
 
         # Sample some clusters labels containing misclassified items
@@ -87,20 +88,20 @@ def heatmaps_clusters_images():
             clusters = get_sorted_clusters(clusters, metric=CLUSTERS_SORT_METRIC)
             clusters_membership = np.array(Clustering().from_cluster_list(clusters).to_membership_list())
         # Show some correctly classified images for clusters containing also misclassified images
-        correct_sample_mask = mask_contains_miss_label & ~global_values.mask_miss_label & sample_mask
+        correct_sample_mask = mask_contains_miss_label & ~mask_miss[mask_label] & sample_mask
         fig, _ = visualize_clusters_images(
             cluster_membership=clusters_membership[correct_sample_mask],
-            images=global_values.test_data_gs[global_values.mask_label][correct_sample_mask],
-            predictions=global_values.predictions[global_values.mask_label][correct_sample_mask],
+            images=global_values.test_data_gs[mask_label][correct_sample_mask],
+            predictions=global_values.predictions[mask_label][correct_sample_mask],
             overlay=contributions[correct_sample_mask]
         )
         save_figure(fig, f'out/low_level/{approach}/clusters_correct_images')
         # Show some incorrectly classified images for clusters containing also misclassified images
-        misses_sample_mask = mask_contains_miss_label & global_values.mask_miss_label & sample_mask
+        misses_sample_mask = mask_contains_miss_label & mask_miss[mask_label] & sample_mask
         fig, _ = visualize_clusters_images(
             cluster_membership=clusters_membership[misses_sample_mask],
-            images=global_values.test_data_gs[global_values.mask_label][misses_sample_mask],
-            predictions=global_values.predictions[global_values.mask_label][misses_sample_mask],
+            images=global_values.test_data_gs[mask_label][misses_sample_mask],
+            predictions=global_values.predictions[mask_label][misses_sample_mask],
             overlay=contributions[misses_sample_mask]
         )
         save_figure(fig, f'out/low_level/{approach}/clusters_misclassified_images')

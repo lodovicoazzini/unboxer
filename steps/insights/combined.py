@@ -8,7 +8,6 @@ from steps.human_evaluation.helpers import sample_clusters, preprocess_data
 def combined_distance_matrix():
     df = preprocess_data()
 
-    print('Computing the distance matrix for the low-level and the high-level approaches ...')
     # Remove the configurations with only one clusters
     df['num_clusters'] = df['clusters'].apply(len)
     plot_data = df[df['num_clusters'] > 1]

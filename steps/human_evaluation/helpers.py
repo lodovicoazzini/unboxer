@@ -48,7 +48,9 @@ def preprocess_data():
     # Read all the needed data
     featuremaps_data = preprocess_featuremaps_data()
     heatmaps_data = preprocess_heatmaps_data()
-    misclassified_idxs = np.argwhere(global_values.mask_miss_label)
+    mask_label = np.array(global_values.test_labels == global_values.EXPECTED_LABEL)
+    mask_miss = np.array(global_values.test_labels != global_values.predictions)
+    misclassified_idxs = np.argwhere(mask_miss[mask_label])
 
     # Merge the data for the featuremaps and the heatmaps
     merged = pd.concat([heatmaps_data, featuremaps_data]).reset_index(drop=True)

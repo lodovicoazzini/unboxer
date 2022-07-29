@@ -84,8 +84,8 @@ class LocalLatentMode(Approach):
 
     def generate_contributions(self):
         # Generate the contributions for the filtered data
-        mask = np.array(global_values.test_labels == global_values.EXPECTED_LABEL)
-        return super(LocalLatentMode, self)._generate_contributions(mask=mask)
+        mask_label = np.array(global_values.test_labels == global_values.EXPECTED_LABEL)
+        return super(LocalLatentMode, self)._generate_contributions(mask=mask_label)
 
     def cluster_contributions(self, contributions: np.ndarray) -> tuple:
         # Flatten teh contributions and project then in the latent space
@@ -119,8 +119,8 @@ class GlobalLatentMode(Approach):
         for dim_red_tech in self.get_dimensionality_reduction_techniques():
             projections = dim_red_tech.fit_transform(contributions_flattened)
         # Cluster the filtered projections
-        mask = np.array(global_values.test_labels == global_values.EXPECTED_LABEL)
-        projections_filtered = projections[mask]
+        mask_label = np.array(global_values.test_labels == global_values.EXPECTED_LABEL)
+        projections_filtered = projections[mask_label]
         clusters = self.get_clustering_technique()().fit_predict(projections_filtered)
         # Compute the silhouette score for the clusters
         try:
@@ -137,8 +137,8 @@ class OriginalMode(Approach):
 
     def generate_contributions(self):
         # Generate the contributions for the filtered data
-        mask = np.array(global_values.test_labels == global_values.EXPECTED_LABEL)
-        return super(OriginalMode, self)._generate_contributions(mask=mask)
+        mask_label = np.array(global_values.test_labels == global_values.EXPECTED_LABEL)
+        return super(OriginalMode, self)._generate_contributions(mask=mask_label)
 
     @staticmethod
     def multiprocessing_metric(pair):

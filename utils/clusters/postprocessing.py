@@ -89,6 +89,8 @@ def get_misclassified_items(cluster: np.ndarray):
     :return: The filtered cluster
     """
     # Get the indexes for the misclassified elements of the label
-    mask_idxs = np.argwhere(global_values.mask_miss_label).flatten()
+    mask_label = np.array(global_values.test_labels == global_values.EXPECTED_LABEL)
+    mask_miss = np.array(global_values.test_labels != global_values.predictions)
+    mask_idxs = np.argwhere(mask_miss[mask_label]).flatten()
     intersection = np.intersect1d(cluster, mask_idxs)
     return intersection

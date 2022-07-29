@@ -32,7 +32,8 @@ def export_clusters_sample_images():
     featuremaps_appendix = '_featuremaps'
 
     # Compute the titles for the images to show the predictions
-    titles = [f'Predicted: {label}' for label in global_values.predictions[global_values.mask_label]]
+    mask_label = np.array(global_values.test_labels == global_values.EXPECTED_LABEL)
+    titles = [f'Predicted: {label}' for label in global_values.predictions[mask_label]]
     titles = np.array(titles)
 
     for approach in tqdm(approaches, desc='Exporting the cluster samples for the approaches'):
@@ -57,7 +58,7 @@ def export_clusters_sample_images():
             sample = np.random.choice(sample, NUM_IMAGES_PER_CLUSTER, replace=False)
             fig, ax = visualize_cluster_images(
                 np.array(sample),
-                images=global_values.test_data_gs[global_values.mask_label],
+                images=global_values.test_data_gs[mask_label],
                 overlays=contributions,
                 labels=titles
             )

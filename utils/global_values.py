@@ -1,12 +1,13 @@
 import os
 import warnings
 
+import numpy as np
 import tensorflow as tf
 from keras.utils.np_utils import to_categorical
 
 from config.config_data import EXPECTED_LABEL, DATASET_LOADER, USE_RGB, MISBEHAVIOR_ONLY
 from config.config_dirs import MODEL
-from utils.dataset import get_train_test_data, get_data_masks
+from utils.dataset import get_train_test_data
 
 # Ignore warnings
 warnings.filterwarnings('ignore')
@@ -32,15 +33,11 @@ except ValueError:
     # The model expects grayscale images
     predictions = classifier.predict(test_data_gs).argmax(axis=-1)
 predictions_cat = to_categorical(predictions)
-# Get the mask for the data
-mask_miss, mask_label = get_data_masks(
-    real_labels=test_labels,
-    predictions=predictions,
-    expected_label=EXPECTED_LABEL,
-    verbose=False
-)
-mask_miss_label = mask_miss[mask_label]
 
+# Get the mask for the data
+mask_miss = np.array(test_labels != predictions)
+
+# Filter the data if configured
 if MISBEHAVIOR_ONLY:
     test_data = test_data[mask_miss]
     test_data_gs = test_data_gs[mask_miss]

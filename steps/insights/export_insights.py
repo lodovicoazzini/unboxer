@@ -49,7 +49,8 @@ if __name__ == '__main__':
                     try:
                         handler()
                     except TypeError:
-                        [handler_item() for handler_item in handler]
+                        # Execute all the handlers (skip last as it's the dict values method itself)
+                        [handler_item() for handler_item in list(handler)[:-1]]
                 else:
                     print(__INVALID_OPTION(choices_str))
         except ValueError:

@@ -16,6 +16,8 @@ def visualize_clusters_projections(projections: np.ndarray, cluster_membership: 
     :param cluster_membership: The cluster membership list for the projections
     :return: The image and the axis
     """
+    mask_label = np.array(global_values.test_labels == global_values.EXPECTED_LABEL)
+    mask_miss = np.array(global_values.test_labels != global_values.predictions)
     # Create the figure
     fig = plt.figure(figsize=(16, 9))
     # Plot the data
@@ -23,7 +25,7 @@ def visualize_clusters_projections(projections: np.ndarray, cluster_membership: 
         x=[projection[0] for projection in projections],
         y=[projection[1] for projection in projections],
         hue=cluster_membership,
-        style=['misclassified' if is_masked else 'correct' for is_masked in global_values.mask_miss_label],
+        style=['misclassified' if is_masked else 'correct' for is_masked in mask_miss[mask_label]],
         palette=sns.color_palette('viridis', n_colors=len(np.unique(cluster_membership)))
     )
     # Style

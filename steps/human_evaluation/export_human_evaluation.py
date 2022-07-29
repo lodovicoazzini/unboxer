@@ -38,6 +38,6 @@ if __name__ == '__main__':
                     try:
                         handler()
                     except TypeError:
-                        [handler_item() for handler_item in handler]
+                        [handler_item() for handler_item in list(handler)[:-1]]
 
         choices_str = input(__MENU)
