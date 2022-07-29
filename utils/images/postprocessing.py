@@ -99,9 +99,13 @@ def aggregate_activations(
     return aggregated, sorted_regions, processed
 
 
-def combine_images(lhs_path, rhs_path):
+def combine_images(lhs_path, rhs_path, aspect_ratio=4 / 3, horizontal=True, scale_size=1):
     # Create the general figure
-    fig, ax = plt.subplots(1, 2)
+    fig, ax = plt.subplots(
+        1 if horizontal else 2,
+        2 if horizontal else 1,
+        figsize=(10 * scale_size, 10 * scale_size * aspect_ratio ** -1)
+    )
     # Read and visualize the images
     lhs, rhs = plt_img.imread(lhs_path), plt_img.imread(rhs_path)
     ax[0].imshow(lhs)
