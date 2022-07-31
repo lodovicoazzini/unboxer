@@ -12,9 +12,11 @@ def euclidean_similarity(lhs: np.ndarray, rhs: np.ndarray) -> float:
     """
     # Compute the distance between teh two matrices
     dist = np.sqrt(np.sum((lhs - rhs) ** 2))
-    # Map the values from [0:same, inf:different) to [0:different, 1:same)
-    dist = math.exp(-dist)
-    return 1 - dist
+    # Compute the maximum distance between the two matrices
+    max_dist = np.sqrt(np.sum((np.ones_like(lhs) - np.zeros_like(rhs)) ** 2))
+    # Map the values from [0:same, max:different) to [0:different, 1:same)
+    sim = 1 - 1 / max_dist * dist
+    return sim
 
 
 def mean_squared_similarity(lhs: np.ndarray, rhs: np.ndarray) -> float:
@@ -28,6 +30,6 @@ def mean_squared_similarity(lhs: np.ndarray, rhs: np.ndarray) -> float:
     # Compute the average of the squares of the differences for each pixel
     err = np.sum((lhs.astype('float') - rhs.astype('float')) ** 2)
     err /= float(lhs.shape[0] * rhs.shape[1])
-    # Map the values from [0:same, inf:different) to [0:different, 1:same)
-    err = math.exp(-err)
-    return 1 - err
+    # Map the values from [0:same, 1:different) to [0:different, 1:same)
+    sim = 1 - err
+    return sim
