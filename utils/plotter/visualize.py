@@ -9,24 +9,31 @@ from config.config_outputs import MAX_LABELS, MAX_SAMPLES
 from utils import global_values
 
 
-def visualize_clusters_projections(projections: np.ndarray, cluster_membership: np.ndarray):
+def visualize_clusters_projections(
+        projections: np.ndarray,
+        cluster_membership: np.ndarray,
+        aspect_ratio=4 / 3,
+        palette='husl'
+):
     """
     Visualize the projections for the clusters as a points
     :param projections: The 2D projections for the images
     :param cluster_membership: The cluster membership list for the projections
+    :param aspect_ratio: The aspect ratio of the image
+    :param palette: The color palette for the data points
     :return: The image and the axis
     """
-    mask_label = np.array(global_values.test_labels == global_values.EXPECTED_LABEL)
-    mask_miss = np.array(global_values.test_labels != global_values.predictions)
+    # mask_label = np.array(global_values.test_labels == global_values.EXPECTED_LABEL)
+    # mask_miss = np.array(global_values.test_labels != global_values.predictions)
     # Create the figure
-    fig = plt.figure(figsize=(16, 9))
+    fig = plt.figure(figsize=(10, 10 * aspect_ratio ** -1))
     # Plot the data
     ax = sns.scatterplot(
         x=[projection[0] for projection in projections],
         y=[projection[1] for projection in projections],
         hue=cluster_membership,
-        style=['misclassified' if is_masked else 'correct' for is_masked in mask_miss[mask_label]],
-        palette=sns.color_palette('viridis', n_colors=len(np.unique(cluster_membership)))
+        # style=['misclassified' if is_masked else 'correct' for is_masked in mask_miss[mask_label]],
+        palette=sns.color_palette(palette, n_colors=len(np.unique(cluster_membership)))
     )
     # Style
     sns.despine(left=True, bottom=True)
@@ -162,6 +169,8 @@ def visualize_cluster_images(
     # Sort the images by label
     label_predictions = global_values.predictions[global_values.test_labels == global_values.EXPECTED_LABEL]
     cluster_predictions = [label_predictions[idx] for idx in cluster]
+    print(cluster_predictions)
+    cluster = np.array(cluster)
     cluster = cluster[np.argsort(cluster_predictions)]
 
     # Assign each axis to one index

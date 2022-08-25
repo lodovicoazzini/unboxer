@@ -8,11 +8,13 @@ import tensorflow as tf
 
 from config.config_dirs import BEST_CONFIGURATIONS, HEATMAPS_DATA_RAW, \
     HEATMAPS_DATA
-from config.config_heatmaps import APPROACH, EXPLAINERS, DIMENSIONALITY_REDUCTION_TECHNIQUES, ITERATIONS
+from config.config_heatmaps import APPROACH, EXPLAINERS, DIMENSIONALITY_REDUCTION_TECHNIQUES, ITERATIONS, \
+    CLUSTERING_TECHNIQUE
 from utils import global_values
 from utils.clusters.Approach import OriginalMode, GlobalLatentMode, LocalLatentMode
 from utils.clusters.compare import compare_approaches
 from utils.dataframes.sample import sample_highest_score
+from utils.general import update_data
 
 BASE_DIR = f'../out/heatmaps'
 
@@ -52,20 +54,27 @@ def main():
     # The processing mode is not original and there is a log -> read the configurations from the log
     else:
         # Read the data about the best configurations
-        best_configurations = pd.read_pickle(BEST_CONFIGURATIONS).set_index('approach')
+        best_configurations = pd.read_pickle(BEST_CONFIGURATIONS)
         # Find the best settings for each approach
         approaches = []
         for explainer in EXPLAINERS:
             try:
                 # Find the best configuration to use
-                best_config = best_configurations.loc[explainer(global_values.classifier).__class__.__name__]
+                best_config = best_configurations[
+                    (best_configurations['approach'] == explainer.__qualname__)
+                    & (best_configurations['clustering_mode'] == approach.__qualname__)
+                    & (best_configurations[
+                           'clustering_technique'] == CLUSTERING_TECHNIQUE.__qualname__)
+                    ].iloc[0]
+                # best_config = best_configurations.loc[explainer(global_values.classifier).__class__.__name__]
+
                 approaches.append(
                     approach(
                         explainer=explainer(global_values.classifier),
                         dimensionality_reduction_techniques=best_config['dimensionality_reduction_techniques']
                     )
                 )
-            except KeyError:
+            except IndexError:
                 # Collect the approaches
                 for approach in [
                     approach(
@@ -73,7 +82,7 @@ def main():
                         dimensionality_reduction_techniques=dimensionality_reduction_technique
                     )
                     for explainer, dimensionality_reduction_technique
-                    in product(explainer, dimensionality_reduction_techniques)
+                    in product([explainer], dimensionality_reduction_techniques)
                 ]:
                     approaches.append(approach)
 
@@ -84,7 +93,12 @@ def main():
         iterations=ITERATIONS,
         get_info=lambda app: f"perplexity: {get_perplexity(app)}" if get_perplexity(app) != np.nan else "Original Mode"
     )
-    # Export the raw data
+    # Update the data
+    df_raw = update_data(
+        pd.read_pickle(HEATMAPS_DATA_RAW),
+        df_raw,
+        on_columns=['approach', 'clustering_mode', 'clustering_technique']
+    )
     df_raw.to_pickle(HEATMAPS_DATA_RAW)
 
     # Find the best configuration for each explainer
@@ -104,7 +118,7 @@ def main():
     if approach is not OriginalMode:
         # Export the best configurations
         best_configs_df = df_sampled[
-            ['approach', 'dimensionality_reduction_techniques']
+            ['approach', 'clustering_mode', 'clustering_technique', 'dimensionality_reduction_techniques']
         ].groupby('approach').first().reset_index(drop=False)
         best_configs_df.to_pickle(BEST_CONFIGURATIONS)
 

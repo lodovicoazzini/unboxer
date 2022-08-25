@@ -94,7 +94,7 @@ class LocalLatentMode(Approach):
         for dim_red_tech in self.get_dimensionality_reduction_techniques():
             projections = dim_red_tech.fit_transform(contributions_flattened)
         # Cluster the projections
-        clusters = self.get_clustering_technique()().fit_predict(projections)
+        clusters = CLUSTERING_TECHNIQUE().fit_predict(projections)
         # Compute the silhouette for the clusters
         try:
             score = silhouette_score(projections, clusters)
@@ -121,7 +121,7 @@ class GlobalLatentMode(Approach):
         # Cluster the filtered projections
         mask_label = np.array(global_values.test_labels == global_values.EXPECTED_LABEL)
         projections_filtered = projections[mask_label]
-        clusters = self.get_clustering_technique()().fit_predict(projections_filtered)
+        clusters = CLUSTERING_TECHNIQUE().fit_predict(projections_filtered)
         # Compute the silhouette score for the clusters
         try:
             score = silhouette_score(projections_filtered, clusters)
@@ -153,7 +153,7 @@ class OriginalMode(Approach):
             multi_process=False
         )
         # Cluster the contributions using the similarity matrix
-        clusters = self.get_clustering_technique()(affinity='precomputed').fit_predict(similarity_matrix)
+        clusters = CLUSTERING_TECHNIQUE(affinity='precomputed').fit_predict(similarity_matrix)
         # Compute the silhouette for the clusters
         try:
             distance_matrix = 1 - similarity_matrix

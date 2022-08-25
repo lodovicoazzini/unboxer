@@ -3,6 +3,7 @@ from typing import Callable
 import numpy as np
 
 from utils import global_values
+from utils.clusters.postprocessing import get_misclassified_items
 from utils.stats import compute_comparison_matrix
 
 
@@ -33,13 +34,9 @@ def get_frac_misses(cluster: list) -> float:
 
 
 def get_labels_purity(cluster: list):
-    # Get the indexes of the misclassified elements
-    miss_idxs = (
-            np.array(global_values.test_labels == global_values.EXPECTED_LABEL).flatten()
-            * np.array(global_values.test_labels != global_values.predictions).flatten()
-    )
     # Filter for the misclassified entries in the clusters
-    masked_entries = [entry for entry in cluster if entry in miss_idxs]
+    cluster = np.array(cluster)
+    masked_entries = get_misclassified_items(cluster)
     # No misclassified entries -> return np.nan
     if len(masked_entries) == 0:
         return np.nan

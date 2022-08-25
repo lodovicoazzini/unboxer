@@ -7,7 +7,7 @@ from clusim.clustering import Clustering
 
 from utils.clusters.extractor import get_frac_misses
 from utils.images.image_similarity.geometry_based import ssim
-from utils.images.image_similarity.intensity_based import euclidean_similarity
+from utils.images.image_similarity.intensity_based import euclidean_similarity, mean_squared_similarity
 from utils.images.postprocessing import mask_noise
 
 CLUSTERS_SORT_METRIC: Callable[[list], tuple] = lambda cluster: (
@@ -28,7 +28,7 @@ def IMAGES_SIMILARITY_METRIC(lhs, rhs, threshold: float = None, max_activation: 
     # if max_activation is not None:
     #     lhs_processed = np.digitize(lhs_processed, np.linspace(0, max_activation, num_bins))
     #     rhs_processed = np.digitize(rhs_processed, np.linspace(0, max_activation, num_bins))
-    return ssim(lhs, rhs)
+    return mean_squared_similarity(lhs, rhs)
 
 
 HUMAN_EVALUATION_APPROACHES = [
