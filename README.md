@@ -9,7 +9,7 @@
 You can run the following command to generate the heatmaps.
 
 ```commandline
-python -m steps.process_featuremaps
+python -m steps.process_heatmaps
 ```
 
 The tool will experiment with the different explainers, find the best configuration for the dimensionality reduction,
